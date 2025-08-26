@@ -97,11 +97,7 @@ export default function CloudDrive() {
       // 2. 上传到存储桶
       const { error: uploadError } = await supabase.storage
         .from('formolly-files')
-        .upload(filePath, selectedFile, {
-          onUploadProgress: (progress) => {
-            setUploadProgress((progress.loaded / progress.total) * 100);
-          }
-        });
+        .upload(filePath, selectedFile);
 
       if (uploadError) throw uploadError;
 
