@@ -177,38 +177,40 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-orange-600" />
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
           旅行知识上传
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           上传包含欧洲旅行攻略的CSV文件，系统将自动进行向量化处理，供Ziway回答问题时使用。
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <Alert>
-          <Upload className="h-4 w-4" />
-          <AlertDescription>
+      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+        <Alert className="p-3 sm:p-4">
+          <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
+          <AlertDescription className="text-xs sm:text-sm">
             <strong>CSV格式要求：</strong>
-            <br />• 必须包含 <code>question</code> 和 <code>answer</code> 列，或单独的 <code>content</code> 列
-            <br />• 可选列：<code>category</code>（分类）、<code>location</code>（地点）、<code>tags</code>（标签）
-            <br />• 文件编码：UTF-8
+            <div className="mt-1 space-y-1">
+              <div>• 必须包含 <code className="bg-gray-100 px-1 rounded text-xs">question</code> 和 <code className="bg-gray-100 px-1 rounded text-xs">answer</code> 列，或单独的 <code className="bg-gray-100 px-1 rounded text-xs">content</code> 列</div>
+              <div>• 可选列：<code className="bg-gray-100 px-1 rounded text-xs">category</code>（分类）、<code className="bg-gray-100 px-1 rounded text-xs">location</code>（地点）、<code className="bg-gray-100 px-1 rounded text-xs">tags</code>（标签）</div>
+              <div>• 文件编码：UTF-8</div>
+            </div>
           </AlertDescription>
         </Alert>
 
-        {/* 默认设置 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 默认设置 - 响应式优化 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">默认分类</label>
+            <label className="text-xs sm:text-sm font-medium mb-2 block">默认分类</label>
             <Select value={defaultCategory} onValueChange={setDefaultCategory}>
-              <SelectTrigger>
+              <SelectTrigger className="text-xs sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {categories.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value}>
+                  <SelectItem key={cat.value} value={cat.value} className="text-xs sm:text-sm">
                     {cat.label}
                   </SelectItem>
                 ))}
@@ -217,51 +219,53 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">默认地点（可选）</label>
+            <label className="text-xs sm:text-sm font-medium mb-2 block">默认地点（可选）</label>
             <Input
               placeholder="如：巴黎、柏林、意大利..."
               value={defaultLocation}
               onChange={(e) => setDefaultLocation(e.target.value)}
+              className="text-xs sm:text-sm"
             />
           </div>
         </div>
 
-        {/* 文件选择和上传 */}
-        <div className="space-y-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        {/* 文件选择和上传 - 响应式优化 */}
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <Input
               id="csv-upload-input"
               type="file"
               accept=".csv"
               onChange={handleFileChange}
-              className="max-w-xs"
+              className="text-xs sm:text-sm cursor-pointer file:text-xs sm:file:text-sm"
             />
             <Button 
               onClick={handleUpload} 
               disabled={!file || isUploading}
-              className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700"
+              className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-xs sm:text-sm px-3 sm:px-4 py-2"
             >
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               {isUploading ? '处理中...' : '上传并处理'}
             </Button>
           </div>
 
           {isUploading && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span>处理进度</span>
                 <span>{progress}%</span>
               </div>
-              <Progress value={progress} className="w-full" />
+              <Progress value={progress} className="w-full h-2" />
             </div>
           )}
         </div>
 
-        {/* 示例数据格式 */}
-        <Alert>
-          <Tag className="h-4 w-4" />
-          <AlertDescription>
+        {/* 示例数据格式 - 响应式优化 */}
+        <Alert className="p-3 sm:p-4">
+          <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
+          <AlertDescription className="text-xs sm:text-sm">
             <strong>示例CSV格式：</strong>
-            <pre className="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto">
+            <pre className="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 sm:p-3 rounded overflow-x-auto">
 {`question,answer,category,location
 "巴黎地铁怎么买票？","可以在地铁站的自动售票机购买，支持信用卡和现金","transportation","巴黎"
 "德国超市购物注意什么？","需要自备购物袋，购物车需要投币，结账后要自己装袋","shopping","德国"`}

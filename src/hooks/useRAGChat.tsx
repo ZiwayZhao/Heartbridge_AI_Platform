@@ -42,14 +42,32 @@ export function useRAGChat() {
     try {
       const startTime = Date.now();
       
-      const { data, error } = await supabase.functions.invoke('rag-chat', {
-        body: {
-          message: message.trim(),
-          category: options.category === 'all' ? null : options.category,
-          location: options.location,
-          importance: options.importance === 'all' ? null : options.importance,
-        }
-      });
+      // 首先尝试使用rag-chat函数，如果失败则回退到formolly-chat
+      let data, error;
+      
+      try {
+        const response = await supabase.functions.invoke('rag-chat', {
+          body: {
+            message: message.trim(),
+            category: options.category,
+            importance: options.importance,
+          }
+        });
+        data = response.data;
+        error = response.error;
+      } catch (ragError) {
+        console.warn('RAG chat function not available, falling back to formolly-chat:', ragError);
+        // 回退到原有的chat函数
+        const response = await supabase.functions.invoke('formolly-chat', {
+          body: {
+            message: message.trim(),
+            category: options.category,
+            location: options.location
+          }
+        });
+        data = response.data;
+        error = response.error;
+      }
 
       const processingTime = Date.now() - startTime;
 

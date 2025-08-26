@@ -74,16 +74,16 @@ export default function FormollyHome() {
       </header>
 
       {/* 主内容 */}
-      <main className="container mx-auto px-4 py-8">
-        {/* 欢迎卡片 */}
-        <Card className="mb-6 md:mb-8 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:justify-between">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        {/* 欢迎卡片 - 响应式优化 */}
+        <Card className="mb-4 sm:mb-6 md:mb-8 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0">
+          <CardContent className="p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 md:justify-between">
               <div className="flex-1">
-                <h2 className="text-xl md:text-2xl font-bold mb-2">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2">
                   🌍 欢迎来到 Formolly！
                 </h2>
-                <p className="text-orange-100 mb-4 text-sm md:text-base">
+                <p className="text-orange-100 mb-3 sm:mb-4 text-xs sm:text-sm md:text-base">
                   我是 Ziway，你的AI旅行助手。为 Molly 精心准备了丰富的欧洲生活和旅行经验。
                 </p>
                 <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-orange-100">
@@ -102,34 +102,34 @@ export default function FormollyHome() {
                 </div>
               </div>
               <div className="hidden sm:block self-center">
-                <Plane className="w-12 h-12 md:w-16 md:h-16 text-orange-200" />
+                <Plane className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 text-orange-200" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* 主功能区域 */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
+        {/* 主功能区域 - 响应式优化 */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-4 md:space-y-6">
           <TabsList className="grid w-full grid-cols-3 h-auto">
-            <TabsTrigger value="chat" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
-              <MessageCircle className="w-4 h-4 flex-shrink-0" />
+            <TabsTrigger value="chat" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 sm:px-2 text-xs sm:text-sm">
+              <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="hidden sm:inline">与 Ziway 聊天</span>
               <span className="sm:hidden">聊天</span>
             </TabsTrigger>
-            <TabsTrigger value="upload" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
-              <Upload className="w-4 h-4 flex-shrink-0" />
+            <TabsTrigger value="upload" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 sm:px-2 text-xs sm:text-sm">
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="hidden sm:inline">知识上传</span>
               <span className="sm:hidden">上传</span>
             </TabsTrigger>
-            <TabsTrigger value="files" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
-              <HardDrive className="w-4 h-4 flex-shrink-0" />
+            <TabsTrigger value="files" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 sm:px-2 text-xs sm:text-sm">
+              <HardDrive className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="hidden sm:inline">云盘文件</span>
               <span className="sm:hidden">云盘</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat" className="space-y-4">
-            <Card className="h-[500px] md:h-[600px]">
+            <Card className="h-[400px] sm:h-[500px] lg:h-[600px]">
               <CardContent className="p-0 h-full">
                 <ZiwayChat className="h-full" />
               </CardContent>
@@ -161,11 +161,11 @@ export default function FormollyHome() {
         </Tabs>
       </main>
 
-      {/* 固定底栏 */}
+      {/* 固定底栏 - 响应式优化 */}
       <footer className="fixed bottom-0 left-0 right-0 border-t bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm z-50">
-        <div className="container mx-auto px-4 py-3">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 dark:text-gray-500">
-            <p className="flex items-center gap-1">
+            <p className="flex items-center gap-1 text-center sm:text-left">
               Made with <span className="text-red-500">❤️</span> for Molly's European Adventure
             </p>
             <p className="mt-1 sm:mt-0">

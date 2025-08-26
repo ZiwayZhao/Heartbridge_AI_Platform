@@ -21,17 +21,17 @@ export default function MessageList({ messages, isLoading }: MessageListProps) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
       {messages.map((message, index) => (
         <MessageItem key={index} message={message} index={index} />
       ))}
       
       {isLoading && (
         <div className="flex justify-start">
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+          <Card className="bg-blue-50 border-blue-200 max-w-[90%] sm:max-w-[85%]">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-blue-600">
+                <div className="animate-spin w-3 h-3 sm:w-4 sm:h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
                 正在检索知识库并生成回答...
               </div>
             </CardContent>

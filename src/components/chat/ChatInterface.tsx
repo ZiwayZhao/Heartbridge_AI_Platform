@@ -37,12 +37,12 @@ export default function ChatInterface({ className }: ChatInterfaceProps) {
 
   return (
     <div className={`flex flex-col h-full ${className}`}>
-      {/* 聊天头部 */}
-      <CardHeader className="border-b bg-muted/5">
-        <div className="flex items-center justify-between">
+      {/* 聊天头部 - 响应式优化 */}
+      <div className="flex-shrink-0 border-b bg-muted/5 p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">与 Ziway 对话</CardTitle>
+            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+            <h2 className="text-base sm:text-lg font-semibold">与 Ziway 对话</h2>
           </div>
           {messages.length > 0 && (
             <Button
@@ -50,20 +50,19 @@ export default function ChatInterface({ className }: ChatInterfaceProps) {
               size="sm"
               onClick={clearMessages}
               disabled={isLoading}
+              className="self-start sm:self-center"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              清空
+              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">清空</span>
             </Button>
           )}
         </div>
-      </CardHeader>
 
-      {/* 过滤器 */}
-      <div className="p-4 border-b bg-muted/5">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-1">
+        {/* 过滤器 - 响应式优化 */}
+        <div className="flex flex-col sm:flex-row gap-2 mt-3">
+          <div className="flex-1 min-w-0">
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="h-8">
+              <SelectTrigger className="h-8 text-xs sm:text-sm">
                 <SelectValue placeholder="选择分类" />
               </SelectTrigger>
               <SelectContent>
@@ -78,9 +77,9 @@ export default function ChatInterface({ className }: ChatInterfaceProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <Select value={importance} onValueChange={setImportance}>
-              <SelectTrigger className="h-8">
+              <SelectTrigger className="h-8 text-xs sm:text-sm">
                 <SelectValue placeholder="重要性" />
               </SelectTrigger>
               <SelectContent>
@@ -94,15 +93,15 @@ export default function ChatInterface({ className }: ChatInterfaceProps) {
         </div>
       </div>
 
-      {/* 消息列表 */}
-      <div className="flex-1 min-h-0">
+      {/* 消息列表 - 响应式优化 */}
+      <div className="flex-1 min-h-0 overflow-hidden">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <MessageCircle className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-8">
+            <MessageCircle className="w-8 h-8 sm:w-12 sm:h-12 text-muted-foreground mb-3 sm:mb-4" />
+            <h3 className="text-sm sm:text-lg font-medium text-muted-foreground mb-2">
               开始与 Ziway 对话
             </h3>
-            <p className="text-sm text-muted-foreground max-w-md">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-md px-2">
               我是你的欧洲旅行AI助手，拥有丰富的旅行经验和实用建议。
               问我任何关于欧洲旅行的问题吧！
             </p>
@@ -112,23 +111,24 @@ export default function ChatInterface({ className }: ChatInterfaceProps) {
         )}
       </div>
 
-      {/* 输入区域 */}
-      <div className="p-4 border-t bg-muted/5">
-        <div className="flex gap-2">
+      {/* 输入区域 - 响应式优化 */}
+      <div className="flex-shrink-0 border-t bg-muted/5 p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="向 Ziway 提问任何关于欧洲旅行的问题..."
-            className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+            className="flex-1 min-h-[60px] sm:min-h-[60px] max-h-[120px] resize-none text-sm"
             disabled={isLoading}
           />
           <Button
             onClick={handleSend}
             disabled={!inputMessage.trim() || isLoading}
-            className="self-end px-4 py-2 h-[60px]"
+            className="sm:self-end px-3 sm:px-4 py-2 h-[60px] text-sm"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="ml-1 sm:hidden">发送</span>
           </Button>
         </div>
         <div className="text-xs text-muted-foreground mt-2">
