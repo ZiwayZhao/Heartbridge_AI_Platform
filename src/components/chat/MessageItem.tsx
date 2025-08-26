@@ -25,7 +25,7 @@ export default function MessageItem({ message, index }: MessageItemProps) {
               <div className="mt-3 pt-3 border-t border-blue-200">
                 <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                   <Database className="w-2 h-2 sm:w-3 sm:h-3" />
-                  <span className="text-xs">参考来源 ({message.retrievedCount}个相关知识)</span>
+                  <span className="text-xs">参考来源 (最佳匹配)</span>
                 </div>
                 <div className="space-y-2">
                   {message.sources.map((source, i) => (

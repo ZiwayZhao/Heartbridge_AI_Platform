@@ -94,7 +94,7 @@ export default function ChatInterface({ className }: ChatInterfaceProps) {
       </div>
 
       {/* 消息列表 - 响应式优化 */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-8">
             <MessageCircle className="w-8 h-8 sm:w-12 sm:h-12 text-muted-foreground mb-3 sm:mb-4" />

@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Upload, FileText, MapPin, Tag } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload, FileText, MapPin, Tag, Database } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
+import KnowledgeManager from './KnowledgeManager';
 
 interface TravelKnowledgeItem {
   question?: string;
@@ -36,6 +38,27 @@ const categories = [
   { value: 'sightseeing', label: '景点游览' },
   { value: 'general', label: '综合信息' }
 ];
+
+// 将旧的类别映射到新的RAG系统类别
+const mapCategoryToNewFormat = (oldCategory: string): 'general' | 'specific' | 'technical' | 'other' => {
+  switch (oldCategory) {
+    case 'technical':
+    case 'transportation':
+    case 'emergency':
+      return 'technical';
+    case 'travel_guide':
+    case 'accommodation':
+    case 'sightseeing':
+      return 'specific';
+    case 'living_tips':
+    case 'food_culture':
+    case 'language':
+    case 'shopping':
+      return 'general';
+    default:
+      return 'other';
+  }
+};
 
 export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnowledgeUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
@@ -73,13 +96,25 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
   };
 
   const processKnowledgeItems = (items: TravelKnowledgeItem[]): TravelKnowledgeItem[] => {
-    return items.map(item => ({
-      ...item,
-      category: item.category || defaultCategory,
-      location: item.location || defaultLocation || null,
-      source_name: file?.name || 'CSV Upload',
-      tags: item.tags || []
-    })).filter(item => 
+    return items.map(item => {
+      // 处理 tags 字段 - 如果是字符串则分割为数组
+      let processedTags: string[] = [];
+      if (item.tags) {
+        if (Array.isArray(item.tags)) {
+          processedTags = item.tags;
+        } else if (typeof item.tags === 'string') {
+          processedTags = item.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        }
+      }
+
+      return {
+        ...item,
+        category: item.category || defaultCategory,
+        location: item.location || defaultLocation || null,
+        source_name: file?.name || 'CSV Upload',
+        tags: processedTags
+      };
+    }).filter(item => 
       (item.question && item.answer) || item.content
     );
   };
@@ -111,44 +146,44 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
       
       setProgress(50);
 
-      // 3. 调用后端函数进行存储和向量化
-      const { data, error } = await supabase.functions.invoke('formolly-upload-knowledge', {
-        body: { knowledgeItems: processedItems }
+      // 3. 转换为新的格式并调用新的process-csv函数
+      const knowledgeUnits = processedItems.map(item => ({
+        content: item.content || `问题: ${item.question}\n答案: ${item.answer}`,
+        category: mapCategoryToNewFormat(item.category || 'general'),
+        importance: 'medium',
+        labels: Array.isArray(item.tags) ? item.tags : [],
+        keywords: Array.isArray(item.tags) ? item.tags : []
+      }));
+
+      console.log('发送到 process-csv 的数据:', knowledgeUnits);
+
+      const { data, error } = await supabase.functions.invoke('process-csv', {
+        body: knowledgeUnits
       });
 
+      console.log('process-csv 响应:', { data, error });
+
       if (error) {
-        throw error;
+        console.error('process-csv 错误详情:', error);
+        throw new Error(`上传失败: ${error.message || '未知错误'}`);
       }
 
       setProgress(100);
 
       // 4. 显示结果
       const result = data;
-      if (result.success) {
-        const successMsg = result.successCount > 0 
-          ? `✅ 成功上传 ${result.successCount} 个知识条目到Ziway的知识库！`
+      
+      // 适配新的返回格式 { message: '...', count: ... }
+      if (result && result.message && result.count !== undefined) {
+        const successMsg = result.count > 0 
+          ? `✅ 成功上传 ${result.count} 个知识条目到Ziway的知识库！`
           : '⚠️ 没有成功处理任何数据';
-          
-        const errorMsg = result.errorCount > 0 
-          ? `❌ ${result.errorCount} 个条目处理失败`
-          : '';
-          
-        const fullMsg = [successMsg, errorMsg].filter(Boolean).join('\n');
         
         toast({
-          title: result.successCount > 0 ? '上传成功！' : '上传完成',
-          description: fullMsg,
-          variant: result.successCount > 0 ? 'default' : 'destructive'
+          title: result.count > 0 ? '上传成功！' : '上传完成',
+          description: successMsg,
+          variant: result.count > 0 ? 'default' : 'destructive'
         });
-        
-        // 显示详细信息
-        if (result.note) {
-          console.log('📝 注意:', result.note);
-        }
-        
-        if (result.errors && result.errors.length > 0) {
-          console.log('❌ 错误详情:', result.errors);
-        }
         
         // 清理状态
         setFile(null);
@@ -159,7 +194,7 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
           onUploadComplete();
         }
       } else {
-        throw new Error(result.error || '上传处理失败');
+        throw new Error('上传处理失败：返回数据格式不正确');
       }
 
     } catch (error: any) {
@@ -176,16 +211,29 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="p-3 sm:p-6">
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-          旅行知识上传
-        </CardTitle>
-        <CardDescription className="text-xs sm:text-sm">
-          上传包含欧洲旅行攻略的CSV文件，系统将自动进行向量化处理，供Ziway回答问题时使用。
-        </CardDescription>
-      </CardHeader>
+    <Tabs defaultValue="upload" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="upload" className="flex items-center gap-2">
+          <Upload className="w-4 h-4" />
+          上传知识
+        </TabsTrigger>
+        <TabsTrigger value="manage" className="flex items-center gap-2">
+          <Database className="w-4 h-4" />
+          管理知识库
+        </TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="upload">
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+              旅行知识上传
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              上传包含欧洲旅行攻略的CSV文件，系统将自动进行向量化处理，供Ziway回答问题时使用。
+            </CardDescription>
+          </CardHeader>
       
       <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
         <Alert className="p-3 sm:p-4">
@@ -266,13 +314,24 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
           <AlertDescription className="text-xs sm:text-sm">
             <strong>示例CSV格式：</strong>
             <pre className="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 sm:p-3 rounded overflow-x-auto">
-{`question,answer,category,location
+{`content,category,importance,labels,keywords
+"巴黎地铁购票：可以在地铁站的自动售票机购买，支持信用卡和现金","transportation","medium","交通,地铁,巴黎","地铁,购票,交通"
+"德国超市购物：需要自备购物袋，购物车需要投币，结账后要自己装袋","shopping","medium","购物,德国","超市,购物,德国"`}
+
+{`或使用问答格式：
+question,answer,category,location
 "巴黎地铁怎么买票？","可以在地铁站的自动售票机购买，支持信用卡和现金","transportation","巴黎"
 "德国超市购物注意什么？","需要自备购物袋，购物车需要投币，结账后要自己装袋","shopping","德国"`}
             </pre>
           </AlertDescription>
         </Alert>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      </TabsContent>
+      
+      <TabsContent value="manage">
+        <KnowledgeManager />
+      </TabsContent>
+    </Tabs>
   );
 }

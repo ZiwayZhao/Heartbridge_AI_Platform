@@ -1,6 +1,5 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// 向量生成服务
+import { createClient } from '@supabase/supabase-js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,29 +12,32 @@ interface EmbeddingRequest {
   batchProcess?: boolean;
 }
 
-serve(async (req) => {
+export async function handleRequest(req: Request) {
   console.log('向量生成服务被调用');
 
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  )
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   let reqBody;
   try {
     reqBody = await req.json();
   } catch (e) {
     console.error('解析请求体失败:', e);
-    return new Response(JSON.stringify({ error: '无效的JSON格式' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(
+      JSON.stringify({ error: '无效的JSON格式' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
     console.log('请求体:', reqBody);
-    const { knowledgeUnitId, batchProcess }: EmbeddingRequest = reqBody
+    const { knowledgeUnitId, batchProcess }: EmbeddingRequest = reqBody;
 
     // 批量处理模式
     if (batchProcess) {
@@ -64,7 +66,7 @@ serve(async (req) => {
           const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -138,7 +140,7 @@ serve(async (req) => {
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -190,4 +192,4 @@ serve(async (req) => {
       }
     );
   }
-})
+}

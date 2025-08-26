@@ -21,7 +21,7 @@ export default function MessageList({ messages, isLoading }: MessageListProps) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 sm:p-4 space-y-3 sm:space-y-4 max-h-full">
       {messages.map((message, index) => (
         <MessageItem key={index} message={message} index={index} />
       ))}

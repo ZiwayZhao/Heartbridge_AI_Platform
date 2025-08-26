@@ -9,7 +9,6 @@ export interface ChatMessage {
     content: string;
     similarity: number;
     category: string;
-    source_name?: string;
   }>;
   retrievedCount?: number;
   processingTime?: number;
@@ -17,12 +16,16 @@ export interface ChatMessage {
 
 export interface RAGChatOptions {
   category?: string | null;
-  location?: string | null;
   importance?: string | null;
 }
 
 export function useRAGChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: 'assistant',
+      content: '你好，我是基于RAG的AI助手！\n\n我可以帮你解答各种问题。我的回答都基于真实的知识库数据，绝不编造信息。'
+    }
+  ]);
   const [isLoading, setIsLoading] = useState(false);
 
   const sendMessage = useCallback(async (
@@ -42,50 +45,31 @@ export function useRAGChat() {
     try {
       const startTime = Date.now();
       
-      // 首先尝试使用rag-chat函数，如果失败则回退到formolly-chat
-      let data, error;
-      
-      try {
-        const response = await supabase.functions.invoke('rag-chat', {
-          body: {
-            message: message.trim(),
-            category: options.category,
-            importance: options.importance,
-          }
-        });
-        data = response.data;
-        error = response.error;
-      } catch (ragError) {
-        console.warn('RAG chat function not available, falling back to formolly-chat:', ragError);
-        // 回退到原有的chat函数
-        const response = await supabase.functions.invoke('formolly-chat', {
-          body: {
-            message: message.trim(),
-            category: options.category,
-            location: options.location
-          }
-        });
-        data = response.data;
-        error = response.error;
-      }
+      const response = await supabase.functions.invoke('rag-chat', {
+        body: {
+          message: message.trim(),
+          category: options.category,
+          importance: options.importance,
+        }
+      });
 
       const processingTime = Date.now() - startTime;
 
-      if (error) {
-        console.error('RAG Chat Error:', error);
-        throw new Error(`聊天服务错误: ${error.message}`);
+      if (response.error) {
+        console.error('RAG Chat Error:', response.error);
+        throw new Error(`聊天服务错误: ${response.error.message}`);
       }
 
-      if (!data || !data.response) {
+      if (!response.data || !response.data.response) {
         throw new Error('AI 未返回有效响应');
       }
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: data.response,
-        sources: data.sources || [],
-        retrievedCount: data.sources?.length || 0,
-        processingTime
+        content: response.data.response,
+        sources: response.data.sources || [],
+        retrievedCount: response.data.retrievedCount || 0,
+        processingTime: response.data.processingTime || processingTime
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -112,13 +96,19 @@ export function useRAGChat() {
   }, []);
 
   const clearMessages = useCallback(() => {
-    setMessages([]);
+    setMessages([{
+      role: 'assistant',
+      content: '聊天记录已清空，有什么新问题我可以帮你解答吗？'
+    }]);
   }, []);
+
+  const clearChat = clearMessages;
 
   return {
     messages,
     isLoading,
     sendMessage,
-    clearMessages
+    clearMessages,
+    clearChat
   };
 }

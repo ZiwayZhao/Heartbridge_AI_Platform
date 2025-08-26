@@ -1,6 +1,5 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// RAG聊天实现
+import { createClient } from '@supabase/supabase-js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,47 +8,34 @@ const corsHeaders = {
 
 // 理解用户查询，提取关键信息
 async function understandQuery(query: string): Promise<{ keywords: string[], categories: string[] }> {
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: '你是一个专业的查询分析器。请从用户的问题中提取关键词和类别。返回格式：{"keywords": ["关键词1", "关键词2"], "categories": ["类别1"]}'
-          },
-          {
-            role: 'user',
-            content: query
-          }
-        ],
-        temperature: 0.3,
-      }),
-    });
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: '你是一个专业的查询分析器。请从用户的问题中提取关键词和类别。以JSON格式返回结果。'
+        },
+        {
+          role: 'user',
+          content: query
+        }
+      ],
+      temperature: 0.3,
+    }),
+  });
 
-    if (!response.ok) {
-      console.warn('查询分析失败，使用默认值');
-      return { keywords: query.split(' '), categories: [] };
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.warn('JSON解析失败，使用默认值:', content);
-      return { keywords: query.split(' '), categories: [] };
-    }
-  } catch (error) {
-    console.warn('查询分析异常，使用默认值:', error);
-    return { keywords: query.split(' '), categories: [] };
+  if (!response.ok) {
+    throw new Error('查询分析失败');
   }
+
+  const data = await response.json();
+  return JSON.parse(data.choices[0].message.content);
 }
 
 // 搜索结构化数据
@@ -66,8 +52,11 @@ async function searchStructuredData(supabaseClient: any, categories: string[]) {
   return data || [];
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+// 主处理函数
+export async function handleRequest(req: Request) {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
 
   try {
     const startTime = Date.now();
@@ -75,15 +64,15 @@ serve(async (req) => {
     if (!message) throw new Error('消息内容为空');
 
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
     // 1. 生成查询向量
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -154,7 +143,7 @@ serve(async (req) => {
 
     const finalResults = Array.from(combinedResults.values())
       .sort((a: any, b: any) => b.score - a.score)
-      .slice(0, 1); // 只取相似度最高的一条结果
+      .slice(0, 8);
 
     // 4. 构建上下文并生成回答
     const context = finalResults
@@ -169,7 +158,7 @@ serve(async (req) => {
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -231,4 +220,4 @@ serve(async (req) => {
       }
     );
   }
-});
+}
