@@ -133,26 +133,28 @@ export default function FormollyHome() {
           </TabsList>
 
           <TabsContent value="chat" className="space-y-4">
-            <Card className="h-[60vh] sm:h-[65vh] lg:h-[70vh]">
-              <CardContent className="p-0 h-full">
-                <ZiwayChat className="h-full" />
-              </CardContent>
-            </Card>
+            <div className="h-[calc(100vh-240px)] sm:h-[calc(100vh-280px)] lg:h-[calc(100vh-320px)]">
+              <Card className="h-full">
+                <CardContent className="p-0 h-full">
+                  <ZiwayChat className="h-full" />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="upload" className="space-y-4">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Upload className="w-5 h-5 text-orange-600" />
-                    为 Ziway 添加知识
+            <div className="w-full max-w-full overflow-hidden">
+              <Card className="w-full">
+                <CardHeader className="p-3 sm:p-6">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                    <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 flex-shrink-0" />
+                    <span className="truncate">为 Ziway 添加知识</span>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">
                     上传欧洲旅行相关的CSV问答文件，让 Ziway 学习更多知识来帮助 Molly
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 sm:p-6">
                   <TravelKnowledgeUploader />
                 </CardContent>
               </Card>
@@ -160,7 +162,9 @@ export default function FormollyHome() {
           </TabsContent>
 
           <TabsContent value="files" className="space-y-4">
-            <CloudDrive />
+            <div className="w-full max-w-full overflow-hidden">
+              <CloudDrive />
+            </div>
           </TabsContent>
         </Tabs>
       </main>

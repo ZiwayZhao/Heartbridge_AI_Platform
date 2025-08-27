@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, MapPin, Tag, Database } from 'lucide-react';
+import { Upload, FileText, MapPin, Tag, Database, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
@@ -211,127 +211,136 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
   };
 
   return (
-    <Tabs defaultValue="upload" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="upload" className="flex items-center gap-2">
-          <Upload className="w-4 h-4" />
-          上传知识
-        </TabsTrigger>
-        <TabsTrigger value="manage" className="flex items-center gap-2">
-          <Database className="w-4 h-4" />
-          管理知识库
-        </TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="upload">
-        <Card className="w-full">
-          <CardHeader className="p-3 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-              旅行知识上传
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              上传包含欧洲旅行攻略的CSV文件，系统将自动进行向量化处理，供Ziway回答问题时使用。
-            </CardDescription>
-          </CardHeader>
-      
-      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
-        <Alert className="p-3 sm:p-4">
-          <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
-          <AlertDescription className="text-xs sm:text-sm">
-            <strong>CSV格式要求：</strong>
-            <div className="mt-1 space-y-1">
-              <div>• 必须包含 <code className="bg-gray-100 px-1 rounded text-xs">question</code> 和 <code className="bg-gray-100 px-1 rounded text-xs">answer</code> 列，或单独的 <code className="bg-gray-100 px-1 rounded text-xs">content</code> 列</div>
-              <div>• 可选列：<code className="bg-gray-100 px-1 rounded text-xs">category</code>（分类）、<code className="bg-gray-100 px-1 rounded text-xs">location</code>（地点）、<code className="bg-gray-100 px-1 rounded text-xs">tags</code>（标签）</div>
-              <div>• 文件编码：UTF-8</div>
-            </div>
-          </AlertDescription>
-        </Alert>
+    <div className="w-full max-w-full overflow-hidden">
+      <Tabs defaultValue="upload" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+          <TabsTrigger value="upload" className="flex items-center gap-1 sm:gap-2 py-2 px-2 sm:px-4 text-xs sm:text-sm">
+            <Upload className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="truncate">上传知识</span>
+          </TabsTrigger>
+          <TabsTrigger value="manage" className="flex items-center gap-1 sm:gap-2 py-2 px-2 sm:px-4 text-xs sm:text-sm">
+            <Database className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="truncate">管理知识库</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="upload" className="mt-4">
+          <Card className="w-full max-w-full">
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 flex-shrink-0" />
+                <span className="truncate">旅行知识上传</span>
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                上传包含欧洲旅行攻略的CSV文件，系统将自动进行向量化处理，供Ziway回答问题时使用。
+              </CardDescription>
+            </CardHeader>
+        
+            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
+              <Alert className="p-2 sm:p-4">
+                <Info className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <AlertDescription className="text-xs sm:text-sm ml-1 sm:ml-0">
+                  <strong>CSV格式要求：</strong>
+                  <div className="mt-1 space-y-1">
+                    <div>• 必须包含 <code className="bg-gray-100 px-1 rounded text-xs">question</code> 和 <code className="bg-gray-100 px-1 rounded text-xs">answer</code> 列，或单独的 <code className="bg-gray-100 px-1 rounded text-xs">content</code> 列</div>
+                    <div>• 可选列：<code className="bg-gray-100 px-1 rounded text-xs">category</code>、<code className="bg-gray-100 px-1 rounded text-xs">location</code>、<code className="bg-gray-100 px-1 rounded text-xs">tags</code></div>
+                    <div>• 文件编码：UTF-8</div>
+                  </div>
+                </AlertDescription>
+              </Alert>
 
-        {/* 默认设置 - 响应式优化 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div>
-            <label className="text-xs sm:text-sm font-medium mb-2 block">默认分类</label>
-            <Select value={defaultCategory} onValueChange={setDefaultCategory}>
-              <SelectTrigger className="text-xs sm:text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value} className="text-xs sm:text-sm">
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {/* 默认设置 - 完全响应式 */}
+              <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium block">默认分类</label>
+                  <Select value={defaultCategory} onValueChange={setDefaultCategory}>
+                    <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(cat => (
+                        <SelectItem key={cat.value} value={cat.value} className="text-xs sm:text-sm">
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          <div>
-            <label className="text-xs sm:text-sm font-medium mb-2 block">默认地点（可选）</label>
-            <Input
-              placeholder="如：巴黎、柏林、意大利..."
-              value={defaultLocation}
-              onChange={(e) => setDefaultLocation(e.target.value)}
-              className="text-xs sm:text-sm"
-            />
-          </div>
-        </div>
-
-        {/* 文件选择和上传 - 响应式优化 */}
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <Input
-              id="csv-upload-input"
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="text-xs sm:text-sm cursor-pointer file:text-xs sm:file:text-sm"
-            />
-            <Button 
-              onClick={handleUpload} 
-              disabled={!file || isUploading}
-              className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-xs sm:text-sm px-3 sm:px-4 py-2"
-            >
-              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              {isUploading ? '处理中...' : '上传并处理'}
-            </Button>
-          </div>
-
-          {isUploading && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <span>处理进度</span>
-                <span>{progress}%</span>
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium block">默认地点（可选）</label>
+                  <Input
+                    placeholder="如：巴黎、柏林、意大利..."
+                    value={defaultLocation}
+                    onChange={(e) => setDefaultLocation(e.target.value)}
+                    className="text-xs sm:text-sm h-8 sm:h-10"
+                  />
+                </div>
               </div>
-              <Progress value={progress} className="w-full h-2" />
-            </div>
-          )}
-        </div>
 
-        {/* 示例数据格式 - 响应式优化 */}
-        <Alert className="p-3 sm:p-4">
-          <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
-          <AlertDescription className="text-xs sm:text-sm">
-            <strong>示例CSV格式：</strong>
-            <pre className="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 sm:p-3 rounded overflow-x-auto">
+              {/* 文件选择和上传 - 完全响应式 */}
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <Input
+                    id="csv-upload-input"
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    className="text-xs sm:text-sm cursor-pointer file:text-xs sm:file:text-sm h-auto py-2"
+                  />
+                  <Button 
+                    onClick={handleUpload} 
+                    disabled={!file || isUploading}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-xs sm:text-sm h-8 sm:h-10"
+                  >
+                    <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">{isUploading ? '处理中...' : '上传并处理'}</span>
+                  </Button>
+                </div>
+
+                {isUploading && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
+                      <span>处理进度</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="w-full h-2" />
+                  </div>
+                )}
+              </div>
+
+              {/* 示例数据格式 - 完全响应式 */}
+              <Alert className="p-2 sm:p-4">
+                <Tag className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <AlertDescription className="text-xs sm:text-sm ml-1 sm:ml-0">
+                  <strong>示例CSV格式：</strong>
+                  <div className="mt-2 bg-gray-100 dark:bg-gray-800 p-2 sm:p-3 rounded overflow-x-auto">
+                    <pre className="text-xs whitespace-pre-wrap break-all">
 {`content,category,importance,labels,keywords
 "巴黎地铁购票：可以在地铁站的自动售票机购买，支持信用卡和现金","transportation","medium","交通,地铁,巴黎","地铁,购票,交通"
 "德国超市购物：需要自备购物袋，购物车需要投币，结账后要自己装袋","shopping","medium","购物,德国","超市,购物,德国"`}
-
-{`或使用问答格式：
-question,answer,category,location
+                    </pre>
+                    <div className="mt-2">
+                      <strong>或使用问答格式：</strong>
+                      <pre className="text-xs whitespace-pre-wrap break-all mt-1">
+{`question,answer,category,location
 "巴黎地铁怎么买票？","可以在地铁站的自动售票机购买，支持信用卡和现金","transportation","巴黎"
 "德国超市购物注意什么？","需要自备购物袋，购物车需要投币，结账后要自己装袋","shopping","德国"`}
-            </pre>
-          </AlertDescription>
-        </Alert>
-        </CardContent>
-      </Card>
-      </TabsContent>
-      
-      <TabsContent value="manage">
-        <KnowledgeManager />
-      </TabsContent>
-    </Tabs>
+                      </pre>
+                    </div>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="manage" className="mt-4">
+          <div className="w-full max-w-full overflow-hidden">
+            <KnowledgeManager />
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
