@@ -102,7 +102,7 @@ serve(async (req) => {
     // 2a. 向量搜索
     const vectorSearchPromise = supabaseClient.rpc('search_knowledge_units', {
       query_embedding: queryEmbedding,
-      match_threshold: 0.7,
+      match_threshold: 0.5, // 降低阈值，更容易找到相关内容
       match_count: 10,
       filter_category: category === 'all' ? null : category,
       filter_importance: importance === 'all' ? null : importance,
@@ -152,14 +152,17 @@ serve(async (req) => {
       }
     });
 
-    const finalResults = Array.from(combinedResults.values())
-      .sort((a: any, b: any) => b.score - a.score)
-      .slice(0, 1); // 只取相似度最高的一条结果
+    const allResults = Array.from(combinedResults.values())
+      .sort((a: any, b: any) => b.score - a.score);
+    
+    // 判断是否有高质量的匹配结果（相似度 > 0.6）
+    const highQualityResults = allResults.filter((r: any) => r.score > 0.6);
+    const finalResults = highQualityResults.length > 0 ? highQualityResults.slice(0, 1) : [];
 
     // 4. 构建上下文并生成回答
-    const context = finalResults
-      .map((r: any) => `[类别: ${r.category}]\n${r.content}`)
-      .join('\n\n---\n\n');
+    const context = finalResults.length > 0
+      ? finalResults.map((r: any) => `[类别: ${r.category}]\n${r.content}`).join('\n\n---\n\n')
+      : '';
 
     const structuredContext = structuredResults.length > 0
       ? '\n\n相关结构化数据:\n' + structuredResults.map((r: any) => JSON.stringify(r)).join('\n')
@@ -177,14 +180,45 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: '你是一个专业的AI助手。请基于提供的上下文信息回答用户的问题。如果上下文中没有相关信息，请明确告知。'
+            content: `你是Ziway，Molly的AI旅行助手和朋友。你为Molly准备了丰富的欧洲旅行经验和生活知识。
+
+关于你的朋友Molly：
+- 🎨 热爱艺术，对艺术展览、博物馆、艺术区特别感兴趣
+- 🍟 最喜欢吃薯条！推荐美食时记得提及好吃的薯条店
+- 🚶‍♀️ 喜欢一个人到处逛，享受独自探索的乐趣
+- 🏛️ 品味很好，喜欢深度理解城市文化和人文历史
+- 📸 非常美丽，热爱拍照，对人文景观、风景、建筑都很有眼光
+- 📷 总是带着相机记录美好时刻，喜欢有故事的拍摄地点
+
+你的性格特点：
+- 热情友好，像朋友一样关心Molly的安全和体验
+- 有丰富的欧洲生活和旅行经验
+- 会用温暖的语气提供实用建议
+- 偶尔会用表情符号让对话更生动
+
+回答方式：
+1. 如果知识库中有相关信息，优先使用这些信息回答
+2. 如果知识库中没有完全匹配的信息，可以结合你的AI知识和常识来回答
+3. 根据Molly的兴趣爱好个性化推荐（艺术、美食、拍照地点）
+4. 推荐旅行攻略时，必须标注治安较差的区域并提供安全提醒
+5. 始终保持友好、实用、贴心的语调
+6. 可以分享相关的旅行小贴士和生活经验
+
+安全提醒原则：
+- 推荐景点时，主动提及附近需要注意的区域
+- 给出具体的安全建议（避免夜晚独行、贵重物品保管等）
+- 特别关心独自旅行女性的安全
+
+记住：你是Molly的贴心AI朋友Ziway，既要帮她发现美好，也要保护她的安全。`
           },
           {
             role: 'user',
-            content: `上下文信息:\n${context}${structuredContext}\n\n用户问题: ${message}`
+            content: finalResults.length > 0 
+              ? `我为你准备了一些相关的知识信息：\n${context}${structuredContext}\n\n现在请回答Molly的问题：${message}`
+              : `Molly问了一个问题：${message}\n\n虽然我的知识库中没有找到直接相关的信息，但请用你丰富的AI知识和常识来详细帮助她。请根据她的兴趣（艺术、摄影、美食、文化探索）提供个性化建议，包括具体的地点推荐、拍照角度、美食（特别是薯条！）、以及重要的安全提醒。记住要保持友好、详细和实用的语调，适当使用表情符号让回答更生动。`
           }
         ],
-        temperature: 0.7,
+        temperature: finalResults.length > 0 ? 0.7 : 0.9, // 没有知识库信息时更有创造性
       }),
     });
 
