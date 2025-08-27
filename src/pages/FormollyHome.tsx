@@ -133,7 +133,7 @@ export default function FormollyHome() {
           </TabsList>
 
           <TabsContent value="chat" className="space-y-4">
-            <Card className="h-[400px] sm:h-[500px] lg:h-[600px]">
+            <Card className="h-[60vh] sm:h-[65vh] lg:h-[70vh]">
               <CardContent className="p-0 h-full">
                 <ZiwayChat className="h-full" />
               </CardContent>

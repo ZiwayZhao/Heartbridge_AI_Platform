@@ -103,7 +103,7 @@ export default function TravelKnowledgeUploader({ onUploadComplete }: TravelKnow
         if (Array.isArray(item.tags)) {
           processedTags = item.tags;
         } else if (typeof item.tags === 'string') {
-          processedTags = item.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+          processedTags = (item.tags as string).split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
         }
       }
 
