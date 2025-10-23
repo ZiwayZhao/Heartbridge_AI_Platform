@@ -23,7 +23,7 @@ export function useRAGChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: '你好！我是Ziway，你的AI旅行助手！🌍\n\n我为Molly准备了丰富的欧洲旅行经验和生活知识。无论你想了解哪个城市的攻略、美食推荐、交通指南，还是想要一些贴心的旅行小贴士，都可以问我！\n\n让我们一起探索美丽的欧洲吧！✨'
+      content: '你好！我是Ziway，专业的自闭症儿童干预专家！🧠\n\n我拥有丰富的自闭症谱系障碍早期干预、行为分析、社交技能训练、语言发展等专业知识。无论您需要了解早期识别方法、干预策略、家庭训练技巧，还是想要一些实用的行为管理建议，都可以问我！\n\n让我们一起为每个孩子创造更好的未来！✨'
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,7 +98,7 @@ export function useRAGChat() {
   const clearMessages = useCallback(() => {
     setMessages([{
       role: 'assistant',
-      content: '聊天记录已清空啦！✨\n\n我是Ziway，随时准备为你和Molly提供欧洲旅行的帮助。有什么新的问题或者想了解的地方吗？🌍'
+      content: '聊天记录已清空！✨\n\n我是Ziway，专业的自闭症儿童干预专家，随时准备为您提供专业的干预指导。有什么关于自闭症儿童干预的问题需要咨询吗？🧠'
     }]);
   }, []);
 
