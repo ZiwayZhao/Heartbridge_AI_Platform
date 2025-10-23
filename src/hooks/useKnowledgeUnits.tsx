@@ -2,7 +2,9 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { KnowledgeUnit } from "@/components/admin/types";
+import type { Database } from "@/integrations/supabase/types";
+
+type KnowledgeUnit = Database['public']['Tables']['knowledge_units']['Row'];
 
 export function useKnowledgeUnits() {
   const [units, setUnits] = useState<KnowledgeUnit[]>([]);
@@ -10,7 +12,7 @@ export function useKnowledgeUnits() {
 
   const loadKnowledgeUnits = useCallback(async () => {
     try {
-      console.log('开始加载知识单元...');
+      console.log('Loading knowledge units...');
       
       const { data, error } = await supabase
         .from('knowledge_units')
@@ -19,29 +21,29 @@ export function useKnowledgeUnits() {
         .limit(100);
 
       if (error) {
-        console.error('知识单元加载错误:', error);
+        console.error('Knowledge units loading error:', error);
         
-        let errorMessage = `知识单元加载失败: ${error.message}`;
+        let errorMessage = `Failed to load knowledge units: ${error.message}`;
         if (error.message.includes('Load failed')) {
-          errorMessage = '网络连接异常，无法加载知识单元数据';
+          errorMessage = 'Network connection issue, unable to load knowledge data';
         }
         
         toast({
-          title: "加载失败",
+          title: "Loading Failed",
           description: errorMessage,
           variant: "destructive"
         });
         return;
       }
 
-      console.log(`成功加载 ${data?.length || 0} 个知识单元`);
-      setUnits((data as KnowledgeUnit[]) || []);
+      console.log(`Successfully loaded ${data?.length || 0} knowledge units`);
+      setUnits(data || []);
       
     } catch (error: any) {
-      console.error('知识单元加载异常:', error);
+      console.error('Knowledge units loading exception:', error);
       toast({
-        title: "加载异常",
-        description: "网络连接不稳定，请检查网络后重试",
+        title: "Loading Exception",
+        description: "Network connection unstable, please check and retry",
         variant: "destructive"
       });
     }

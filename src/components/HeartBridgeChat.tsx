@@ -1,9 +1,9 @@
 import ChatInterface from '@/components/chat/ChatInterface';
 
-interface ZiwayChatProps {
+interface HeartBridgeChatProps {
   className?: string;
 }
 
-export default function ZiwayChat({ className }: ZiwayChatProps) {
+export default function HeartBridgeChat({ className }: HeartBridgeChatProps) {
   return <ChatInterface className={className} />;
 }

@@ -5,12 +5,12 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
-  username: string | null;
-  avatar_url: string | null;
+  full_name: string | null;
+  email: string | null;
 }
 
 interface UserRole {
-  role: 'admin' | 'user';
+  role: 'admin' | 'parent' | 'therapist';
 }
 
 export function useAuth() {
@@ -63,17 +63,16 @@ export function useAuth() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url')
-        .eq('id', userId)
+        .select('id, full_name, email')
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
-        // 创建默认档案
         setProfile({
           id: userId,
-          username: user?.email?.split('@')[0] || '用户',
-          avatar_url: null
+          full_name: user?.email?.split('@')[0] || 'User',
+          email: user?.email || null
         });
         return;
       }
@@ -81,24 +80,22 @@ export function useAuth() {
       if (data) {
         setProfile({
           id: data.id,
-          username: data.username,
-          avatar_url: data.avatar_url
+          full_name: data.full_name,
+          email: data.email
         });
       } else {
-        // 如果没有档案，创建默认档案
         setProfile({
           id: userId,
-          username: user?.email?.split('@')[0] || '用户',
-          avatar_url: null
+          full_name: user?.email?.split('@')[0] || 'User',
+          email: user?.email || null
         });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      // 创建默认档案
       setProfile({
         id: userId,
-        username: user?.email?.split('@')[0] || '用户',
-        avatar_url: null
+        full_name: user?.email?.split('@')[0] || 'User',
+        email: user?.email || null
       });
     }
   };
@@ -121,7 +118,7 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string, username?: string) => {
+  const signUp = async (email: string, password: string, fullName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -130,21 +127,21 @@ export function useAuth() {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          username: username || email.split('@')[0]
+          full_name: fullName || email.split('@')[0]
         }
       }
     });
 
     if (error) {
       toast({
-        title: "注册失败",
+        title: "Registration Failed",
         description: error.message,
         variant: "destructive"
       });
     } else {
       toast({
-        title: "注册成功",
-        description: "请检查您的邮箱以确认账户",
+        title: "Registration Successful",
+        description: "Please check your email to confirm your account",
       });
     }
 
@@ -159,7 +156,7 @@ export function useAuth() {
 
     if (error) {
       toast({
-        title: "登录失败",
+        title: "Login Failed",
         description: error.message,
         variant: "destructive"
       });
@@ -173,7 +170,7 @@ export function useAuth() {
     
     if (error) {
       toast({
-        title: "退出失败",
+        title: "Sign Out Failed",
         description: error.message,
         variant: "destructive"
       });

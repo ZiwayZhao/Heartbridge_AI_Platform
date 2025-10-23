@@ -1,0 +1,177 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+
+  try {
+    const { message, category, importance, userId } = await req.json();
+    if (!message) throw new Error('Message content is empty');
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // 1. Generate query embedding using Lovable AI
+    const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-ada-002',
+        input: message
+      }),
+    });
+
+    if (!embeddingResponse.ok) {
+      const errorText = await embeddingResponse.text();
+      console.error('Embedding API error:', embeddingResponse.status, errorText);
+      throw new Error('Failed to generate query embedding');
+    }
+
+    const { data: [{ embedding: queryEmbedding }] } = await embeddingResponse.json();
+
+    // 2. Vector search knowledge base
+    const { data: searchResults, error: searchError } = await supabaseClient.rpc('search_knowledge_units', {
+      query_embedding: queryEmbedding,
+      match_threshold: 0.7,
+      match_count: 8,
+      filter_category: category === 'all' ? null : category,
+      filter_importance: importance === 'all' ? null : importance,
+    });
+
+    if (searchError) {
+      console.error('Vector search error:', searchError);
+    }
+
+    // 3. Build context from search results
+    const relevantKnowledge = searchResults || [];
+    const context = relevantKnowledge
+      .map(result => {
+        const categoryInfo = `[Category: ${result.category}]`;
+        
+        // If it's a Q&A pair, show Q&A format
+        if (result.entities && result.entities.question && result.entities.answer) {
+          return `${categoryInfo}\nQuestion: ${result.entities.question}\nAnswer: ${result.entities.answer}`;
+        }
+        
+        // Otherwise show content
+        return `${categoryInfo}\n${result.content}`;
+      })
+      .join('\n\n---\n\n');
+
+    // 4. HeartBridge system prompt
+    const systemPrompt = `You are HeartBridge AI, a professional autism intervention specialist assistant. Your characteristics:
+
+🧠 Identity:
+- You are a compassionate, knowledgeable AI assistant specialized in autism intervention
+- You provide evidence-based guidance for parents, therapists, and caregivers
+- Your responses are practical, actionable, and supportive
+
+📚 Knowledge Base:
+- Base your answers on the provided knowledge base content
+- If information isn't in the knowledge base, clearly state that and provide general guidance
+- Prioritize specific interventions, techniques, and strategies from the knowledge base
+
+🎯 Response Principles:
+- Practical first: Provide specific, actionable advice
+- Evidence-based: Reference established intervention methods (ABA, TEACCH, SCERTS, etc.)
+- Safety-conscious: Always mention safety considerations when relevant
+- Individualized: Acknowledge that every child is unique
+- Supportive: Provide encouragement and realistic expectations
+
+💬 Response Format:
+- Use clear, accessible language
+- Structure answers with bullet points and sections when appropriate
+- Provide concrete examples and step-by-step guidance
+- Include follow-up suggestions when relevant`;
+
+    const userPrompt = `
+Knowledge Base Content:
+---
+${context || "No directly relevant content found in knowledge base"}
+---
+
+User Question: ${message}
+
+Please provide a detailed, practical response based on the knowledge base content:
+`;
+
+    // 5. Generate AI response using Lovable AI
+    const chatResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1500,
+      }),
+    });
+
+    if (!chatResponse.ok) {
+      const errorText = await chatResponse.text();
+      console.error('Chat API error:', chatResponse.status, errorText);
+      
+      if (chatResponse.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
+      if (chatResponse.status === 402) {
+        throw new Error('AI service requires additional credits. Please contact support.');
+      }
+      throw new Error('Failed to generate AI response');
+    }
+
+    const chatData = await chatResponse.json();
+    const aiResponse = chatData.choices[0].message.content;
+
+    // 6. Save chat history if user is authenticated
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    if (userId) {
+      await supabaseClient
+        .from('chat_history')
+        .insert({
+          user_id: userId,
+          session_id: sessionId,
+          message: message,
+          response: aiResponse,
+          sources: relevantKnowledge.slice(0, 3),
+        });
+    }
+
+    return new Response(JSON.stringify({
+      response: aiResponse,
+      sources: relevantKnowledge,
+      session_id: sessionId,
+      retrievedCount: relevantKnowledge.length
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('HeartBridge Chat Error:', error.message);
+    return new Response(JSON.stringify({
+      error: error.message,
+      response: 'I apologize, but I encountered a technical issue. Please try again or rephrase your question.'
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
