@@ -14,16 +14,197 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_history: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          response: string
+          session_id: string
+          sources: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          response: string
+          session_id: string
+          sources?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          response?: string
+          session_id?: string
+          sources?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      intervention_cases: {
+        Row: {
+          child_age: number | null
+          child_name: string
+          created_at: string
+          diagnosis_details: string | null
+          id: string
+          intervention_goals: Json | null
+          progress_notes: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          child_age?: number | null
+          child_name: string
+          created_at?: string
+          diagnosis_details?: string | null
+          id?: string
+          intervention_goals?: Json | null
+          progress_notes?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          child_age?: number | null
+          child_name?: string
+          created_at?: string
+          diagnosis_details?: string | null
+          id?: string
+          intervention_goals?: Json | null
+          progress_notes?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      knowledge_units: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          data_type: string | null
+          embedding: string | null
+          entities: Json | null
+          id: string
+          importance: string | null
+          source_name: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          data_type?: string | null
+          embedding?: string | null
+          entities?: Json | null
+          id?: string
+          importance?: string | null
+          source_name?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          data_type?: string | null
+          embedding?: string | null
+          entities?: Json | null
+          id?: string
+          importance?: string | null
+          source_name?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          language_preference: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          language_preference?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          language_preference?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      search_knowledge_units: {
+        Args: {
+          filter_category?: string
+          filter_importance?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          category: string
+          content: string
+          data_type: string
+          entities: Json
+          id: string
+          importance: string
+          similarity: number
+          source_name: string
+          tags: string[]
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "therapist" | "parent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +331,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "therapist", "parent"],
+    },
   },
 } as const
