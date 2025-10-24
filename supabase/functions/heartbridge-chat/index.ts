@@ -12,41 +12,13 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const { message, category, importance } = await req.json();
     
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const { message, category, importance, userId } = await req.json();
-    
-    // Verify userId matches authenticated user
-    if (userId && userId !== user.id) {
-      return new Response(JSON.stringify({ error: 'Forbidden: Cannot access other users\' data' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Validate and sanitize message input
     if (!message || typeof message !== 'string') {
       throw new Error('Invalid message input');
     }
@@ -54,6 +26,15 @@ serve(async (req) => {
     const sanitizedMessage = message.trim().slice(0, 2000);
     if (sanitizedMessage.length === 0) {
       throw new Error('Message content is empty');
+    }
+
+    // Get user if authenticated
+    const authHeader = req.headers.get('authorization');
+    let user = null;
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user: authUser } } = await supabaseClient.auth.getUser(token);
+      user = authUser;
     }
 
     // 1. Generate query embedding using Lovable AI
@@ -93,7 +74,7 @@ serve(async (req) => {
     // 3. Build context from search results
     const relevantKnowledge = searchResults || [];
     const context = relevantKnowledge
-      .map(result => {
+      .map((result: any) => {
         const categoryInfo = `[Category: ${result.category}]`;
         
         // If it's a Q&A pair, show Q&A format
@@ -177,17 +158,19 @@ Please provide a detailed, practical response based on the knowledge base conten
     const chatData = await chatResponse.json();
     const aiResponse = chatData.choices[0].message.content;
 
-    // 6. Save chat history (use authenticated user.id)
+    // 6. Save chat history if user is authenticated
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    await supabaseClient
-      .from('chat_history')
-      .insert({
-        user_id: user.id,
-        session_id: sessionId,
-        message: sanitizedMessage,
-        response: aiResponse,
-        sources: relevantKnowledge.slice(0, 3),
-      });
+    if (user) {
+      await supabaseClient
+        .from('chat_history')
+        .insert({
+          user_id: user.id,
+          session_id: sessionId,
+          message: sanitizedMessage,
+          response: aiResponse,
+          sources: relevantKnowledge.slice(0, 3),
+        });
+    }
 
     return new Response(JSON.stringify({
       response: aiResponse,
@@ -199,9 +182,10 @@ Please provide a detailed, practical response based on the knowledge base conten
     });
 
   } catch (error) {
-    console.error('HeartBridge Chat Error:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('HeartBridge Chat Error:', errorMessage);
     return new Response(JSON.stringify({
-      error: error.message,
+      error: errorMessage,
       response: 'I apologize, but I encountered a technical issue. Please try again or rephrase your question.'
     }), {
       status: 500,

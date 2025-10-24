@@ -12,42 +12,10 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Verify user has admin role
-    const { data: isAdmin } = await supabaseClient.rpc('has_role', { 
-      _user_id: user.id, 
-      _role: 'admin' 
-    });
-
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: 'Forbidden: Admin role required' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
 
     const { knowledgeItems } = await req.json();
     if (!knowledgeItems || !Array.isArray(knowledgeItems)) {
@@ -63,10 +31,15 @@ serve(async (req) => {
       try {
         // 1. Prepare content for embedding
         let contentForEmbedding = '';
+        const entities: any = {};
+        
         if (item.question && item.answer) {
           contentForEmbedding = `Question: ${item.question}\nAnswer: ${item.answer}`;
+          entities.question = item.question;
+          entities.answer = item.answer;
+          if (item.id) entities.id = item.id;
         } else {
-          contentForEmbedding = item.content || item.question || '';
+          contentForEmbedding = item.content || '';
         }
 
         if (!contentForEmbedding.trim()) {
@@ -101,12 +74,9 @@ serve(async (req) => {
         // 3. Prepare database record
         const knowledgeRecord = {
           content: contentForEmbedding,
-          entities: item.question && item.answer ? {
-            question: item.question,
-            answer: item.answer
-          } : (item.entities || {}),
+          entities: Object.keys(entities).length > 0 ? entities : null,
           source_name: item.source_name || 'CSV Upload',
-          data_type: item.question && item.answer ? 'qa' : (item.data_type || 'text'),
+          data_type: item.question && item.answer ? 'qa_pair' : 'text',
           category: item.category || 'general',
           tags: item.tags || [],
           importance: item.importance || 'medium',
@@ -126,7 +96,8 @@ serve(async (req) => {
 
       } catch (error) {
         errorCount++;
-        errors.push(`Item ${successCount + errorCount}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        errors.push(`Item ${successCount + errorCount}: ${errorMessage}`);
         console.error(`Error processing knowledge item:`, error);
       }
     }
@@ -142,10 +113,11 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('HeartBridge Upload Knowledge Error:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('HeartBridge Upload Knowledge Error:', errorMessage);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: errorMessage
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

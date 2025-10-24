@@ -39,13 +39,14 @@ export default function KnowledgeUploader() {
         skipEmptyLines: true,
         complete: async (results) => {
           const knowledgeItems = results.data.map((row: any) => ({
-            question: row.question || row.Question || '',
-            answer: row.answer || row.Answer || '',
-            category: row.category || row.Category || 'general',
-            importance: row.importance || row.Importance || 'medium',
+            id: row.ID || row.id || '',
+            question: row.Question || row.question || '',
+            answer: row.Answer || row.answer || '',
+            category: row.Category || row.category || 'general',
+            importance: row.Importance || row.importance || 'medium',
             tags: row.tags ? row.tags.split(',').map((t: string) => t.trim()) : [],
             source_name: file.name,
-          }));
+          })).filter(item => item.question && item.answer);
 
           // Upload to HeartBridge
           const { data, error } = await supabase.functions.invoke('heartbridge-upload-knowledge', {
