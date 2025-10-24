@@ -12,13 +12,49 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { message, category, importance, userId } = await req.json();
-    if (!message) throw new Error('Message content is empty');
+    // Verify authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { message, category, importance, userId } = await req.json();
+    
+    // Verify userId matches authenticated user
+    if (userId && userId !== user.id) {
+      return new Response(JSON.stringify({ error: 'Forbidden: Cannot access other users\' data' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Validate and sanitize message input
+    if (!message || typeof message !== 'string') {
+      throw new Error('Invalid message input');
+    }
+    
+    const sanitizedMessage = message.trim().slice(0, 2000);
+    if (sanitizedMessage.length === 0) {
+      throw new Error('Message content is empty');
+    }
 
     // 1. Generate query embedding using Lovable AI
     const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
@@ -29,7 +65,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'text-embedding-ada-002',
-        input: message
+        input: sanitizedMessage
       }),
     });
 
@@ -102,7 +138,7 @@ Knowledge Base Content:
 ${context || "No directly relevant content found in knowledge base"}
 ---
 
-User Question: ${message}
+User Question: ${sanitizedMessage}
 
 Please provide a detailed, practical response based on the knowledge base content:
 `;
@@ -141,19 +177,17 @@ Please provide a detailed, practical response based on the knowledge base conten
     const chatData = await chatResponse.json();
     const aiResponse = chatData.choices[0].message.content;
 
-    // 6. Save chat history if user is authenticated
+    // 6. Save chat history (use authenticated user.id)
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    if (userId) {
-      await supabaseClient
-        .from('chat_history')
-        .insert({
-          user_id: userId,
-          session_id: sessionId,
-          message: message,
-          response: aiResponse,
-          sources: relevantKnowledge.slice(0, 3),
-        });
-    }
+    await supabaseClient
+      .from('chat_history')
+      .insert({
+        user_id: user.id,
+        session_id: sessionId,
+        message: sanitizedMessage,
+        response: aiResponse,
+        sources: relevantKnowledge.slice(0, 3),
+      });
 
     return new Response(JSON.stringify({
       response: aiResponse,

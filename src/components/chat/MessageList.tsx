@@ -1,7 +1,7 @@
 
 import { useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChatMessage } from '@/hooks/useRAGChat';
+import { ChatMessage } from '@/hooks/useHeartBridgeChat';
 import MessageItem from './MessageItem';
 
 interface MessageListProps {

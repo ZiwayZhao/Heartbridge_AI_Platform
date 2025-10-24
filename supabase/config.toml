@@ -1,7 +1,7 @@
 project_id = "sfdarjnmvdnwqcnbwqdo"
 
 [functions.heartbridge-chat]
-verify_jwt = false
+verify_jwt = true
 
 [functions.heartbridge-upload-knowledge]
-verify_jwt = false
+verify_jwt = true

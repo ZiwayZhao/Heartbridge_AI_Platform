@@ -37,8 +37,8 @@ export default function UserAvatar() {
     await signOut();
   };
 
-  const username = profile?.username || user.email?.split('@')[0] || '用户';
-  const avatarUrl = profile?.avatar_url;
+  const username = profile?.full_name || user.email?.split('@')[0] || '用户';
+  const avatarUrl = undefined; // No avatar_url field in profile
 
   return (
     <DropdownMenu>

@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Database } from 'lucide-react';
-import { ChatMessage } from '@/hooks/useRAGChat';
+import { ChatMessage } from '@/hooks/useHeartBridgeChat';
 
 interface MessageItemProps {
   message: ChatMessage;

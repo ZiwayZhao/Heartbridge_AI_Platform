@@ -12,15 +12,47 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { knowledgeItems } = await req.json();
-    if (!knowledgeItems || !Array.isArray(knowledgeItems)) {
-      throw new Error('Invalid knowledge items data');
+    // Verify authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Verify user has admin role
+    const { data: isAdmin } = await supabaseClient.rpc('has_role', { 
+      _user_id: user.id, 
+      _role: 'admin' 
+    });
+
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden: Admin role required' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { knowledgeItems } = await req.json();
+    if (!knowledgeItems || !Array.isArray(knowledgeItems)) {
+      throw new Error('Invalid knowledge items data');
+    }
 
     let successCount = 0;
     let errorCount = 0;

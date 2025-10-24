@@ -12,6 +12,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { z } from 'zod';
+
+const authSchema = z.object({
+  email: z.string().trim().email('Invalid email address').max(255, 'Email too long'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password too long'),
+  username: z.string().trim().min(2, 'Username must be at least 2 characters').max(50, 'Username too long').optional()
+});
 
 interface AuthDialogProps {
   open: boolean;
@@ -22,6 +30,7 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const { signIn, signUp } = useAuth();
+  const { toast } = useToast();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,7 +40,19 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    const { error } = await signIn(email, password);
+    const result = authSchema.safeParse({ email, password });
+    if (!result.success) {
+      const errors = result.error.errors.map(e => e.message).join(', ');
+      toast({
+        title: 'Validation Error',
+        description: errors,
+        variant: 'destructive'
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const { error } = await signIn(result.data.email, result.data.password);
     
     if (!error) {
       onOpenChange(false);
@@ -49,7 +70,19 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     const password = formData.get('password') as string;
     const username = formData.get('username') as string;
 
-    const { error } = await signUp(email, password, username);
+    const result = authSchema.safeParse({ email, password, username });
+    if (!result.success) {
+      const errors = result.error.errors.map(e => e.message).join(', ');
+      toast({
+        title: 'Validation Error',
+        description: errors,
+        variant: 'destructive'
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const { error } = await signUp(result.data.email, result.data.password, result.data.username);
     
     if (!error) {
       onOpenChange(false);
@@ -66,11 +99,23 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    const { error } = await signIn(email, password);
+    const result = authSchema.safeParse({ email, password });
+    if (!result.success) {
+      const errors = result.error.errors.map(e => e.message).join(', ');
+      toast({
+        title: 'Validation Error',
+        description: errors,
+        variant: 'destructive'
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const { error } = await signIn(result.data.email, result.data.password);
     
     if (!error) {
       onOpenChange(false);
-      // 管理员登录成功后跳转到管理页面
+      // Redirect will happen based on user role
       window.location.href = '/admin';
     }
     
