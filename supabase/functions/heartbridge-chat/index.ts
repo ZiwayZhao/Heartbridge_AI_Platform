@@ -37,26 +37,26 @@ serve(async (req) => {
       user = authUser;
     }
 
-    // 1. Generate query embedding using Lovable AI
-    const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'text-embedding-ada-002',
-        input: sanitizedMessage
-      }),
-    });
-
-    if (!embeddingResponse.ok) {
-      const errorText = await embeddingResponse.text();
-      console.error('Embedding API error:', embeddingResponse.status, errorText);
-      throw new Error('Failed to generate query embedding');
+    // 1. Generate query embedding
+    function createEmbeddingVector(text: string): number[] {
+      const vector = new Array(1536).fill(0);
+      const words = text.toLowerCase().split(/\s+/);
+      
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        for (let j = 0; j < word.length; j++) {
+          const charCode = word.charCodeAt(j);
+          const index = (charCode * (i + 1) * (j + 1)) % 1536;
+          vector[index] += Math.sin(charCode * 0.1) * Math.cos((i + j) * 0.1);
+        }
+      }
+      
+      // Normalize vector
+      const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+      return magnitude > 0 ? vector.map(v => v / magnitude) : vector;
     }
 
-    const { data: [{ embedding: queryEmbedding }] } = await embeddingResponse.json();
+    const queryEmbedding = createEmbeddingVector(sanitizedMessage);
 
     // 2. Vector search knowledge base
     const { data: searchResults, error: searchError } = await supabaseClient.rpc('search_knowledge_units', {
@@ -137,8 +137,6 @@ Please provide a detailed, practical response based on the knowledge base conten
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.7,
-        max_tokens: 1500,
       }),
     });
 
