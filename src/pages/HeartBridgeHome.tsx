@@ -9,15 +9,18 @@ import {
   Settings,
   Heart,
   Brain,
-  Users
+  Users,
+  Database
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import HeartBridgeChat from '@/components/HeartBridgeChat';
 import KnowledgeUploader from '@/components/KnowledgeUploader';
+import { useNavigate } from 'react-router-dom';
 
 export default function HeartBridgeHome() {
   const [activeTab, setActiveTab] = useState('chat');
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'zh' : 'en');
@@ -44,6 +47,15 @@ export default function HeartBridgeHome() {
             </div>
             
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/knowledge')}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                <Database className="w-4 h-4 mr-1" />
+                知识管理
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
