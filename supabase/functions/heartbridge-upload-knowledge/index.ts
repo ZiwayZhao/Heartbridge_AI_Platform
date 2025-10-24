@@ -6,7 +6,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+// Category mapping: 将CSV中的category映射到数据库允许的值
+function mapCategoryToDb(csvCategory: string): string {
+  const categoryMap: Record<string, string> = {
+    'Functional Communication Training': 'communication',
+    'Teaching Waiting Skills': 'behavior',
+    'Emotional Regulation': 'behavior',
+    'Social Skills Training': 'social_skills',
+    'Sensory Activities': 'sensory',
+    'Behavioral Intervention': 'intervention',
+    'ABA Techniques': 'intervention',
+  };
+  
+  const normalized = csvCategory.trim();
+  return categoryMap[normalized] || 'general';
+}
 
 // Simple embedding vector generator for consistent 1536-dimension vectors
 function createEmbeddingVector(text: string): number[] {
@@ -57,6 +71,7 @@ serve(async (req) => {
           entities.question = item.question;
           entities.answer = item.answer;
           if (item.id) entities.id = item.id;
+          if (item.category) entities.category = item.category; // 保存原始category
         } else {
           contentForEmbedding = item.content || '';
         }
@@ -65,49 +80,18 @@ serve(async (req) => {
           throw new Error('Empty content for embedding');
         }
 
-        // 2. Generate vector embedding using Lovable AI
-        if (!LOVABLE_API_KEY) {
-          throw new Error('LOVABLE_API_KEY is not configured');
-        }
-
-        // Generate embedding using google/gemini-2.5-flash with special embedding format
-        const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { 
-                role: 'user', 
-                content: `Convert this text to a semantic embedding vector representation: ${contentForEmbedding.slice(0, 1500)}` 
-              }
-            ],
-          }),
-        });
-
-        if (!embeddingResponse.ok) {
-          const errorText = await embeddingResponse.text();
-          console.error(`Embedding generation failed: ${errorText}`);
-          throw new Error(`Failed to generate embedding: ${embeddingResponse.status}`);
-        }
-
-        const embeddingResult = await embeddingResponse.json();
+        // 2. Generate embedding vector locally (no external API needed)
+        const embedding = createEmbeddingVector(contentForEmbedding);
         
-        // Create a consistent embedding vector from the AI response
-        const responseText = embeddingResult.choices[0].message.content;
-        const embedding = createEmbeddingVector(responseText + contentForEmbedding);
+        console.log(`Generated embedding for item: ${item.id || 'unknown'}`);
 
-
-        // 3. Prepare database record
+        // 3. Prepare database record with proper category mapping
         const knowledgeRecord = {
           content: contentForEmbedding,
           entities: Object.keys(entities).length > 0 ? entities : null,
           source_name: item.source_name || 'CSV Upload',
-          data_type: item.question && item.answer ? 'qa_pair' : 'text',
-          category: item.category || 'general',
+          data_type: item.question && item.answer ? 'qa' : 'text',
+          category: mapCategoryToDb(item.category || ''), // 映射category到数据库允许的值
           tags: item.tags || [],
           importance: item.importance || 'medium',
           embedding: embedding,
@@ -119,10 +103,12 @@ serve(async (req) => {
           .insert(knowledgeRecord);
 
         if (insertError) {
+          console.error(`Database insert error for item ${item.id}:`, insertError);
           throw new Error(`Database insert failed: ${insertError.message}`);
         }
 
         successCount++;
+        console.log(`Successfully uploaded item ${successCount}: ${item.id || 'unknown'}`);
 
       } catch (error) {
         errorCount++;
