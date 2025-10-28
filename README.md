@@ -568,31 +568,6 @@ const { data, error } = await supabase
 
 ---
 
-## 🎓 学习路径
-
-### 新手开发者
-
-1. 熟悉 React 和 TypeScript 基础
-2. 了解 Tailwind CSS 和 shadcn/ui
-3. 学习 Supabase 客户端 API
-4. 阅读 `ChatInterface.tsx` 和 `useHeartBridgeChat.tsx`
-
-### 中级开发者
-
-1. 理解 RAG 系统原理
-2. 学习向量数据库和 Embedding
-3. 研究 `heartbridge-chat/index.ts` 的实现
-4. 优化搜索算法和上下文构建
-
-### 高级开发者
-
-1. 性能优化和缓存策略
-2. 扩展知识库处理能力 (PDF, 图片 OCR)
-3. 实现更复杂的 RAG 策略 (Re-ranking, Hybrid Search)
-4. 多模态支持 (图片、音频)
-
----
-
 ## 📄 许可证
 
 MIT License
