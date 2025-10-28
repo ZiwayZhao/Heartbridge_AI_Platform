@@ -2,18 +2,21 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  Settings,
   Heart,
   Brain,
   Users,
-  Database
+  Database,
+  Languages
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserMenu } from '@/components/UserMenu';
 import HeartBridgeChat from '@/components/HeartBridgeChat';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HeartBridgeHome() {
   const { language, setLanguage, t } = useLanguage();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const toggleLanguage = () => {
@@ -41,24 +44,26 @@ export default function HeartBridgeHome() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/knowledge')}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                <Database className="w-4 h-4 mr-1" />
-                知识管理
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/knowledge')}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <Database className="w-4 h-4 mr-1" />
+                  {language === 'zh' ? '知识管理' : 'Knowledge'}
+                </Button>
+              )}
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={toggleLanguage}
-                className="text-blue-600 hover:text-blue-700"
+                title={language === 'en' ? '切换到中文' : 'Switch to English'}
               >
-                <Settings className="w-4 h-4 mr-1" />
-                {language === 'en' ? '中文' : 'EN'}
+                <Languages className="h-5 w-5" />
               </Button>
+              <UserMenu />
             </div>
           </div>
         </div>

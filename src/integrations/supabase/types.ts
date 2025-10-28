@@ -175,6 +175,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_admin_user: {
+        Args: {
+          user_email: string
+          user_full_name?: string
+          user_password: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -182,6 +190,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
       search_knowledge_units: {
         Args: {
           filter_category?: string

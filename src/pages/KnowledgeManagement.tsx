@@ -1,120 +1,100 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Upload, RefreshCw } from "lucide-react";
 import { KnowledgeTable } from "@/components/knowledge/KnowledgeTable";
+import { UserMenu } from "@/components/UserMenu";
 import { useToast } from "@/hooks/use-toast";
+import { RefreshCw, ArrowLeft, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function KnowledgeManagement() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [importanceFilter, setImportanceFilter] = useState<string>("all");
-  const { toast } = useToast();
 
-  const { data: knowledgeUnits, isLoading, refetch } = useQuery({
-    queryKey: ["knowledge-units", searchTerm, categoryFilter, importanceFilter],
+  const texts = {
+    en: {
+      title: 'Knowledge Management',
+      description: 'Manage autism intervention knowledge base',
+      back: 'Back to Home',
+      search: 'Search...',
+      refresh: 'Refresh',
+      knowledgeList: 'Knowledge Units',
+    },
+    zh: {
+      title: '知识库管理',
+      description: '管理自闭症干预知识库',
+      back: '返回首页',
+      search: '搜索...',
+      refresh: '刷新',
+      knowledgeList: '知识单元列表',
+    },
+  };
+
+  const t = texts[language];
+
+  const { data: knowledgeUnits = [], isLoading, refetch } = useQuery({
+    queryKey: ['knowledge-units', searchTerm, categoryFilter, importanceFilter],
     queryFn: async () => {
-      let query = supabase
-        .from("knowledge_units")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      let query = supabase.from('knowledge_units').select('*');
+      
       if (searchTerm) {
-        query = query.ilike("content", `%${searchTerm}%`);
+        query = query.or(`content.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`);
       }
-
-      if (categoryFilter !== "all") {
-        query = query.eq("category", categoryFilter);
+      
+      if (categoryFilter && categoryFilter !== 'all') {
+        query = query.eq('category', categoryFilter);
       }
-
-      if (importanceFilter !== "all") {
-        query = query.eq("importance", importanceFilter);
+      
+      if (importanceFilter && importanceFilter !== 'all') {
+        query = query.eq('importance', importanceFilter);
       }
-
+      
+      query = query.order('created_at', { ascending: false });
+      
       const { data, error } = await query;
-
-      if (error) {
-        toast({
-          title: "加载失败",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
   });
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">知识库管理</h1>
-            <p className="text-muted-foreground mt-2">
-              管理和查看已入库的知识单元
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <header className="border-b bg-card/50 backdrop-blur">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Shield className="h-6 w-6 text-primary" />
+            <h1 className="text-lg font-semibold">{t.title}</h1>
           </div>
-          <Button onClick={() => window.location.href = "/"} variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            返回上传
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => navigate('/')} variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t.back}
+            </Button>
+            <UserMenu />
+          </div>
         </div>
+      </header>
 
+      <div className="container mx-auto p-6 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>筛选和搜索</CardTitle>
-            <CardDescription>
-              通过关键词、类别和重要性筛选知识单元
-            </CardDescription>
+            <CardTitle>{t.title}</CardTitle>
+            <CardDescription>{t.description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-4 flex-wrap">
-              <div className="flex-1 min-w-[200px]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="搜索内容..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="选择类别" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部类别</SelectItem>
-                  <SelectItem value="general">通用</SelectItem>
-                  <SelectItem value="intervention">干预</SelectItem>
-                  <SelectItem value="communication">沟通</SelectItem>
-                  <SelectItem value="behavior">行为</SelectItem>
-                  <SelectItem value="social_skills">社交技能</SelectItem>
-                  <SelectItem value="sensory">感官</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={importanceFilter} onValueChange={setImportanceFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="选择重要性" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部级别</SelectItem>
-                  <SelectItem value="low">低</SelectItem>
-                  <SelectItem value="medium">中</SelectItem>
-                  <SelectItem value="high">高</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" onClick={() => refetch()}>
+            <div className="flex gap-4">
+              <Input placeholder={t.search} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1" />
+              <Button onClick={() => refetch()} variant="outline" size="icon">
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
@@ -123,21 +103,10 @@ export default function KnowledgeManagement() {
 
         <Card>
           <CardHeader>
-            <CardTitle>
-              知识单元列表
-              {knowledgeUnits && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  共 {knowledgeUnits.length} 条
-                </span>
-              )}
-            </CardTitle>
+            <CardTitle>{t.knowledgeList}</CardTitle>
           </CardHeader>
           <CardContent>
-            <KnowledgeTable
-              data={knowledgeUnits || []}
-              isLoading={isLoading}
-              onRefresh={refetch}
-            />
+            <KnowledgeTable knowledgeUnits={knowledgeUnits} isLoading={isLoading} refetch={refetch} />
           </CardContent>
         </Card>
       </div>

@@ -9,17 +9,6 @@ verify_jwt = false
 [functions.generate-embeddings]
 verify_jwt = false
 
-[functions.formolly-chat]
-verify_jwt = false
-
-[functions.formolly-chat-simple]
-verify_jwt = false
-
-[functions.formolly-upload-knowledge]
-verify_jwt = false
-
-[functions.formolly-upload-simple]
-verify_jwt = false
 
 [functions.process-csv]
 verify_jwt = false
