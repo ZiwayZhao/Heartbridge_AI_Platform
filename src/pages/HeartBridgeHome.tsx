@@ -1,11 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  MessageCircle, 
-  Upload, 
-  FolderOpen, 
   Settings,
   Heart,
   Brain,
@@ -14,11 +10,9 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import HeartBridgeChat from '@/components/HeartBridgeChat';
-import KnowledgeUploader from '@/components/KnowledgeUploader';
 import { useNavigate } from 'react-router-dom';
 
 export default function HeartBridgeHome() {
-  const [activeTab, setActiveTab] = useState('chat');
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
 
@@ -105,35 +99,14 @@ export default function HeartBridgeHome() {
           </CardContent>
         </Card>
 
-        {/* Main Functional Area */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 h-auto">
-            <TabsTrigger value="chat" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 sm:px-2 text-xs sm:text-sm">
-              <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('nav.chat')}</span>
-              <span className="sm:hidden">{t('nav.chat')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="upload" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 sm:px-2 text-xs sm:text-sm">
-              <Upload className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('nav.upload')}</span>
-              <span className="sm:hidden">{t('nav.upload')}</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="chat" className="space-y-4">
-            <div className="h-[calc(100vh-240px)] sm:h-[calc(100vh-280px)] lg:h-[calc(100vh-320px)]">
-              <Card className="h-full">
-                <CardContent className="p-0 h-full">
-                  <HeartBridgeChat className="h-full" />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="upload" className="space-y-4">
-            <KnowledgeUploader />
-          </TabsContent>
-        </Tabs>
+        {/* Main Chat Area */}
+        <div className="h-[calc(100vh-240px)] sm:h-[calc(100vh-280px)] lg:h-[calc(100vh-320px)]">
+          <Card className="h-full">
+            <CardContent className="p-0 h-full">
+              <HeartBridgeChat className="h-full" />
+            </CardContent>
+          </Card>
+        </div>
       </main>
 
       {/* Footer */}
