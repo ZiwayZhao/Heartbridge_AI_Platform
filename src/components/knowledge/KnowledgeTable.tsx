@@ -26,12 +26,12 @@ interface KnowledgeUnit {
 }
 
 interface KnowledgeTableProps {
-  data: KnowledgeUnit[];
+  knowledgeUnits: KnowledgeUnit[];
   isLoading: boolean;
-  onRefresh: () => void;
+  refetch: () => void;
 }
 
-export function KnowledgeTable({ data, isLoading, onRefresh }: KnowledgeTableProps) {
+export function KnowledgeTable({ knowledgeUnits, isLoading, refetch }: KnowledgeTableProps) {
   const [selectedUnit, setSelectedUnit] = useState<KnowledgeUnit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -102,7 +102,7 @@ export function KnowledgeTable({ data, isLoading, onRefresh }: KnowledgeTablePro
     );
   }
 
-  if (data.length === 0) {
+  if (knowledgeUnits.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         <p>暂无知识单元</p>
@@ -125,7 +125,7 @@ export function KnowledgeTable({ data, isLoading, onRefresh }: KnowledgeTablePro
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((unit) => (
+            {knowledgeUnits.map((unit) => (
               <TableRow key={unit.id}>
                 <TableCell className="font-medium">
                   <div className="max-w-md truncate">{unit.content}</div>
@@ -182,7 +182,7 @@ export function KnowledgeTable({ data, isLoading, onRefresh }: KnowledgeTablePro
             open={editDialogOpen || viewDialogOpen}
             onOpenChange={viewDialogOpen ? setViewDialogOpen : setEditDialogOpen}
             onSuccess={() => {
-              onRefresh();
+              refetch();
               setEditDialogOpen(false);
               setViewDialogOpen(false);
             }}
@@ -193,7 +193,7 @@ export function KnowledgeTable({ data, isLoading, onRefresh }: KnowledgeTablePro
             open={deleteDialogOpen}
             onOpenChange={setDeleteDialogOpen}
             onSuccess={() => {
-              onRefresh();
+              refetch();
               setDeleteDialogOpen(false);
             }}
           />
