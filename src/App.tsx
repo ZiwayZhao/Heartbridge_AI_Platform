@@ -35,9 +35,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Admin Route Component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, isAdmin, userRoles } = useAuth();
-  
-  console.log('AdminRoute check:', { user: !!user, loading, isAdmin, userRoles });
+  const { user, loading, isAdmin } = useAuth();
   
   if (loading) {
     return (
@@ -48,16 +46,13 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    console.log('AdminRoute: No user, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
   
   if (!isAdmin) {
-    console.log('AdminRoute: Not admin, redirecting to /');
     return <Navigate to="/" replace />;
   }
   
-  console.log('AdminRoute: Access granted');
   return <>{children}</>;
 };
 

@@ -67,14 +67,22 @@ export function useHeartBridgeChat(language: 'en' | 'zh' = 'en') {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
+      console.log('Sending message to heartbridge-chat:', {
+        message: message.trim(),
+        category: options.category,
+        importance: options.importance,
+        userId: user?.id
+      });
+      
       const response = await supabase.functions.invoke('heartbridge-chat', {
         body: {
           message: message.trim(),
-          category: options.category,
-          importance: options.importance,
-          userId: user?.id || null,
+          category: options.category || 'all',
+          importance: options.importance || 'all',
         }
       });
+
+      console.log('Response from heartbridge-chat:', response);
 
       const processingTime = Date.now() - startTime;
 

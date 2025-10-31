@@ -24,39 +24,64 @@ export function useAuth() {
   const isAdmin = userRoles.some(role => role.role === 'admin');
 
   useEffect(() => {
+    let mounted = true;
+    
     // 设置认证状态监听器
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // 延迟获取用户资料和角色
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-            fetchUserRoles(session.user.id);
-          }, 0);
+          // 先获取角色，然后再设置loading为false
+          try {
+            await Promise.all([
+              fetchUserProfile(session.user.id),
+              fetchUserRoles(session.user.id)
+            ]);
+          } finally {
+            if (mounted) {
+              setLoading(false);
+            }
+          }
         } else {
           setProfile(null);
           setUserRoles([]);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
     // 检查现有会话
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-        fetchUserRoles(session.user.id);
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await Promise.all([
+            fetchUserProfile(session.user.id),
+            fetchUserRoles(session.user.id)
+          ]);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
