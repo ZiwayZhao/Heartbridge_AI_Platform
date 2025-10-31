@@ -138,7 +138,6 @@ export function useAuth() {
         return;
       }
 
-      console.log('Fetched user roles:', data);
       setUserRoles(data || []);
     } catch (error) {
       console.error('Error fetching roles:', error);
