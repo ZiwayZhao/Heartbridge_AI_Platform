@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+
 // Category mapping: 将CSV中的category映射到数据库允许的值
 function mapCategoryToDb(csvCategory: string): string {
   const categoryMap: Record<string, string> = {
@@ -22,23 +24,28 @@ function mapCategoryToDb(csvCategory: string): string {
   return categoryMap[normalized] || 'general';
 }
 
-// Simple embedding vector generator for consistent 1536-dimension vectors
-function createEmbeddingVector(text: string): number[] {
-  const vector = new Array(1536).fill(0);
-  const words = text.toLowerCase().split(/\s+/);
-  
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    for (let j = 0; j < word.length; j++) {
-      const charCode = word.charCodeAt(j);
-      const index = (charCode * (i + 1) * (j + 1)) % 1536;
-      vector[index] += Math.sin(charCode * 0.1) * Math.cos((i + j) * 0.1);
-    }
+// Generate embedding using OpenAI API
+async function createEmbeddingVector(text: string): Promise<number[]> {
+  const response = await fetch('https://api.openai.com/v1/embeddings', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'text-embedding-3-small',
+      input: text,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('OpenAI Embedding API error:', response.status, errorText);
+    throw new Error('Failed to generate embedding');
   }
-  
-  // Normalize vector
-  const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
-  return magnitude > 0 ? vector.map(v => v / magnitude) : vector;
+
+  const data = await response.json();
+  return data.data[0].embedding;
 }
 
 serve(async (req) => {
@@ -80,8 +87,8 @@ serve(async (req) => {
           throw new Error('Empty content for embedding');
         }
 
-        // 2. Generate embedding vector locally (no external API needed)
-        const embedding = createEmbeddingVector(contentForEmbedding);
+        // 2. Generate embedding vector using OpenAI API
+        const embedding = await createEmbeddingVector(contentForEmbedding);
         
         console.log(`Generated embedding for item: ${item.id || 'unknown'}`);
 
