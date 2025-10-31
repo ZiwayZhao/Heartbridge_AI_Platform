@@ -59,12 +59,25 @@ serve(async (req) => {
     const queryEmbedding = createEmbeddingVector(sanitizedMessage);
 
     // 2. Vector search knowledge base
-    const { data: searchResults, error: searchError } = await supabaseClient.rpc('search_knowledge_units', {
-      query_embedding: queryEmbedding,
-      match_threshold: 0.7,
+    console.log('Performing vector search with params:', {
+      match_threshold: 0.3,
       match_count: 8,
       filter_category: category === 'all' ? null : category,
       filter_importance: importance === 'all' ? null : importance,
+    });
+
+    const { data: searchResults, error: searchError } = await supabaseClient.rpc('search_knowledge_units', {
+      query_embedding: queryEmbedding,
+      match_threshold: 0.3,
+      match_count: 8,
+      filter_category: category === 'all' ? null : category,
+      filter_importance: importance === 'all' ? null : importance,
+    });
+
+    console.log('Vector search results:', {
+      resultsCount: searchResults?.length || 0,
+      error: searchError,
+      firstResult: searchResults?.[0]
     });
 
     if (searchError) {
