@@ -49,7 +49,7 @@ export default function ChatInput({ onSendMessage, isLoading }: ChatInputProps) 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="🔍 请输入你的高考志愿问题..."
+          placeholder="💬 请输入关于自闭症干预的问题..."
           rows={2}
           className="flex-1 min-h-[60px] max-h-32 resize-none"
           disabled={isLoading}

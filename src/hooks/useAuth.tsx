@@ -109,12 +109,15 @@ export function useAuth() {
 
       if (error) {
         console.error('Error fetching roles:', error);
+        setUserRoles([]);
         return;
       }
 
+      console.log('Fetched user roles:', data);
       setUserRoles(data || []);
     } catch (error) {
       console.error('Error fetching roles:', error);
+      setUserRoles([]);
     }
   };
 
