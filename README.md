@@ -1,14 +1,48 @@
-# HeartBridge - 自闭症干预知识助手
+# HeartBridge - 自闭症干预智能助手平台
 
-HeartBridge 是一个基于 RAG (检索增强生成) 的智能问答系统，专注于自闭症谱系障碍（ASD）的家庭干预指导和专业咨询服务。
+HeartBridge 是一个基于 RAG (检索增强生成) 的智能问答系统，专注于自闭症谱系障碍（ASD）的家庭干预指导和专业 BCBA 咨询服务。
 
 ## 🎯 项目概述
 
-HeartBridge 将专业的自闭症干预知识库与 AI 对话系统结合，为家长、治疗师和看护者提供：
-- 实时的专业干预建议和策略
-- 基于证据的行为分析方法（ABA、TEACCH、SCERTS 等）
-- 可操作的家庭训练技巧
-- 结构化的知识管理系统
+HeartBridge 将专业的自闭症干预知识库、AI 对话系统和 BCBA 咨询师资源整合，为家长、治疗师和看护者提供：
+- 💬 实时的专业干预建议和策略（基于知识库的 RAG 问答）
+- 👨‍⚕️ 经过认证的 BCBA 咨询师信息和联系方式
+- 📚 基于证据的行为分析方法（ABA、TEACCH、SCERTS 等）
+- 🏠 可操作的家庭训练技巧
+- 🔧 结构化的知识管理系统
+- 💾 聊天历史记忆功能
+
+---
+
+## ✨ 核心功能
+
+### 1. RAG 智能问答系统
+- 基于向量数据库的语义检索
+- OpenAI Embeddings (text-embedding-3-small)
+- Google Gemini 2.5 Flash AI 模型
+- 实时知识检索与上下文增强
+- 支持中英文对话
+- 自动保存聊天历史
+
+### 2. BCBA 咨询师展示
+- 展示经过认证的 BCBA 专业咨询师
+- 包含详细信息：经验年限、专长领域、收费标准、联系方式
+- 用户可直接通过邮件或电话联系咨询师
+- 支持咨询师主页展示和管理后台
+
+### 3. 知识库管理系统
+- 管理员可上传、编辑、删除知识单元
+- CSV/Excel 批量导入
+- 自动向量化（OpenAI Embeddings）
+- 分类和重要性标签
+- 全文搜索和过滤
+- 重新索引功能
+
+### 4. 用户系统
+- 邮箱密码注册登录
+- 基于角色的访问控制（管理员/普通用户）
+- 用户配置管理
+- 聊天历史持久化
 
 ---
 
@@ -23,29 +57,38 @@ src/
 │   │   ├── ChatInterface.tsx      # 聊天界面主组件
 │   │   ├── ChatInput.tsx          # 聊天输入组件
 │   │   ├── MessageList.tsx        # 消息列表组件
-│   │   ├── MessageItem.tsx        # 单条消息组件
+│   │   ├── MessageItem.tsx        # 单条消息组件（支持 Markdown 渲染）
 │   │   └── FilterControls.tsx     # 过滤器控件
 │   ├── knowledge/          # 知识库管理组件
-│   │   ├── KnowledgeTable.tsx     # 知识单元表格
-│   │   ├── KnowledgeEditDialog.tsx # 编辑对话框
-│   │   ├── KnowledgeDeleteDialog.tsx # 删除确认对话框
-│   │   ├── CacheManager.tsx       # 缓存管理器
-│   │   ├── DataSyncManager.tsx    # 数据同步管理器
+│   │   ├── KnowledgeTable.tsx          # 知识单元表格
+│   │   ├── KnowledgeEditDialog.tsx     # 编辑对话框
+│   │   ├── KnowledgeDeleteDialog.tsx   # 删除确认对话框
+│   │   ├── AnalysisService.tsx         # 分析服务
+│   │   ├── CacheManager.tsx            # 缓存管理器
+│   │   ├── DataSyncManager.tsx         # 数据同步管理器
 │   │   └── QualityAssuranceService.tsx # 质量保证服务
 │   ├── ui/                 # shadcn/ui 基础组件库
 │   ├── HeartBridgeChat.tsx # 聊天功能包装组件
-│   ├── WelcomeNotice.tsx   # 欢迎通知组件
+│   ├── AppSidebar.tsx      # 应用侧边栏导航
 │   ├── DashboardHeader.tsx # 仪表盘头部
+│   ├── UserMenu.tsx        # 用户菜单
+│   ├── UserAvatar.tsx      # 用户头像
+│   ├── FireLogo.tsx        # 应用 Logo
 │   └── ...
 ├── pages/                   # 页面组件
-│   ├── HeartBridgeHome.tsx       # 首页
-│   ├── KnowledgeManagement.tsx   # 知识库管理页面
-│   ├── Index.tsx                 # 根页面
+│   ├── HeartBridgeHome.tsx       # 首页（聊天界面）
+│   ├── BCBAConsultants.tsx       # BCBA 咨询师展示页
+│   ├── BCBAManagement.tsx        # BCBA 咨询师管理页（管理员）
+│   ├── KnowledgeManagement.tsx   # 知识库管理页面（管理员）
+│   ├── Auth.tsx                  # 登录注册页面
+│   ├── Settings.tsx              # 用户设置页面
+│   ├── Profile.tsx               # 用户资料页面
 │   └── NotFound.tsx              # 404 页面
 ├── hooks/                   # React Hooks
-│   ├── useHeartBridgeChat.tsx    # 聊天逻辑 Hook
+│   ├── useHeartBridgeChat.tsx    # 聊天逻辑 Hook（含历史加载）
 │   ├── useAuth.tsx               # 认证 Hook
 │   ├── useDatabaseConnection.tsx # 数据库连接 Hook
+│   ├── useReindexKnowledge.tsx   # 知识重新索引 Hook
 │   └── use-toast.ts              # Toast 通知 Hook
 ├── contexts/               # React Context
 │   └── LanguageContext.tsx       # 多语言上下文（中英文切换）
@@ -70,11 +113,13 @@ src/
 supabase/
 ├── functions/                      # Edge Functions (Deno)
 │   ├── heartbridge-chat/          # RAG 聊天 API
-│   │   └── index.ts
-│   └── heartbridge-upload-knowledge/ # 知识上传 API
-│       └── index.ts
+│   │   └── index.ts               # 问答处理、向量检索、AI 生成
+│   ├── heartbridge-upload-knowledge/ # 知识上传 API
+│   │   └── index.ts               # CSV 解析、向量化、批量插入
+│   └── reindex-knowledge/         # 知识重新索引 API
+│       └── index.ts               # 重新生成所有 Embeddings
 ├── migrations/                     # 数据库迁移文件
-│   └── [timestamps]_*.sql
+│   └── [timestamps]_*.sql         # SQL 迁移脚本
 └── config.toml                     # Supabase 项目配置
 ```
 
@@ -94,6 +139,8 @@ supabase/
 | **React Router** | 路由管理 | 6.26.2 |
 | **Supabase Client** | 后端通信 | 2.76.1 |
 | **Tanstack Query** | 数据获取 | 5.56.2 |
+| **React Markdown** | Markdown 渲染 | 10.1.0 |
+| **remark-gfm** | GitHub Flavored Markdown | 4.0.1 |
 
 ### 后端技术栈
 
@@ -102,7 +149,8 @@ supabase/
 | **Supabase** | 后端服务 | BaaS 平台 |
 | **PostgreSQL** | 数据库 | 包含 pgvector 扩展 |
 | **Deno** | Edge Functions 运行时 | TypeScript 原生支持 |
-| **Lovable AI Gateway** | AI 服务 | Google Gemini 2.5 Flash |
+| **OpenAI API** | Embeddings 生成 | text-embedding-3-small |
+| **Lovable AI Gateway** | AI 对话 | Google Gemini 2.5 Flash |
 
 ---
 
@@ -116,36 +164,37 @@ supabase/
 
 **处理流程**:
 
-```typescript
-用户问题 → 生成 Embedding 向量 → 向量数据库检索 → 上下文构建 → AI 生成回答
+```
+用户问题 → OpenAI Embedding → 向量数据库检索 → 上下文构建 → Gemini AI 生成回答 → 保存历史
 ```
 
 **关键步骤**:
 
-1. **Embedding 生成** (行 41-57)
-   - 使用确定性算法生成 1536 维向量
-   - 基于字符码和单词位置的数学运算
-   - 向量归一化处理
+1. **Embedding 生成** (行 41-65)
+   - 调用 OpenAI API 生成 1536 维向量
+   - 模型：`text-embedding-3-small`
+   - 格式：`float` (非量化)
 
-2. **向量搜索** (行 62-68)
+2. **向量搜索** (行 68-93)
    - 调用 `search_knowledge_units` RPC 函数
-   - 余弦相似度匹配 (阈值: 0.7)
+   - 余弦相似度匹配 (阈值: 0.5)
    - 返回最相关的 8 条知识
 
-3. **上下文构建** (行 75-88)
+3. **上下文构建** (行 96-109)
    - 格式化检索结果
    - 区分 Q&A 对和普通内容
    - 添加类别信息
 
-4. **AI 对话生成** (行 128-157)
+4. **AI 对话生成** (行 112-178)
    - 使用 Lovable AI Gateway
    - 模型: `google/gemini-2.5-flash`
    - System Prompt 定义专业身份和回答原则
    - User Prompt 包含知识库上下文
 
-5. **会话记录** (行 160-171)
+5. **会话记录** (行 181-192)
    - 保存到 `chat_history` 表
    - 记录问题、回答、来源和会话 ID
+   - 仅保存认证用户的历史
 
 **错误处理**:
 - Rate limiting (429)
@@ -162,26 +211,25 @@ supabase/
 
 **处理流程**:
 
-```typescript
-CSV 文件 → 解析数据 → 类别映射 → Embedding 生成 → 数据库插入
+```
+CSV 文件 → 解析数据 → 类别映射 → OpenAI Embedding → 数据库插入
 ```
 
 **关键功能**:
 
-1. **类别映射** (行 9-21)
+1. **类别映射**
    ```typescript
    CSV 类别 → 数据库标准类别
    "Functional Communication Training" → "communication"
    "Emotional Regulation" → "behavior"
-   "Teaching Waiting Skills" → "behavior"
    ```
 
-2. **Embedding 向量生成** (行 25-42)
-   - 本地生成，无需调用外部 API
+2. **Embedding 向量生成**
+   - 使用 OpenAI API
+   - 模型：`text-embedding-3-small`
    - 1536 维向量
-   - 实时生成，无异步处理
 
-3. **数据结构化** (行 96-117)
+3. **数据结构化**
    ```typescript
    {
      content: "Question: xxx\nAnswer: yyy",
@@ -198,14 +246,89 @@ CSV 文件 → 解析数据 → 类别映射 → Embedding 生成 → 数据库�
    }
    ```
 
-4. **批量插入** (行 119-132)
+4. **批量插入**
    - 逐条插入知识单元
    - 记录成功和失败数量
    - 详细错误日志
 
 ---
 
-### 3. 知识库管理
+### 3. 重新索引系统 (`reindex-knowledge`)
+
+**API 端点**: `/functions/v1/reindex-knowledge`
+
+**实现文件**: `supabase/functions/reindex-knowledge/index.ts`
+
+**功能**:
+- 批量重新生成所有知识单元的 Embeddings
+- 使用 OpenAI API 确保向量一致性
+- 提供进度反馈和错误处理
+
+**使用场景**:
+- 修复旧的模拟 Embeddings
+- 切换 Embedding 模型后重新索引
+- 知识库数据迁移
+
+---
+
+### 4. BCBA 咨询师系统
+
+**展示页面**: `src/pages/BCBAConsultants.tsx`
+**管理页面**: `src/pages/BCBAManagement.tsx` (仅管理员)
+
+**功能特性**:
+
+1. **咨询师信息展示**
+   - 姓名、职称、个人简介
+   - 从业年限
+   - 专长领域（标签显示）
+   - 收费标准
+   - 联系方式（邮箱、电话）
+
+2. **管理功能**（管理员专用）
+   - 添加新咨询师
+   - 编辑咨询师信息
+   - 删除咨询师
+   - 设置显示顺序
+   - 激活/停用咨询师
+
+3. **数据结构**
+   ```typescript
+   {
+     name: string;
+     title: string;
+     bio: string;
+     specialties: string[];      // 专长领域
+     contact_email: string;
+     contact_phone: string;
+     pricing: string;
+     experience_years: number;
+     is_active: boolean;         // 是否激活
+     display_order: number;      // 显示顺序
+   }
+   ```
+
+---
+
+### 5. 聊天历史记忆功能
+
+**实现位置**: `src/hooks/useHeartBridgeChat.tsx`
+
+**功能特性**:
+- 用户登录后自动加载历史聊天记录
+- 从 `chat_history` 表读取最近 50 条记录
+- 按时间顺序恢复对话
+- 新消息自动保存到数据库
+- 支持清空当前会话
+
+**数据流**:
+```
+用户登录 → 加载历史 (chat_history 表) → 显示历史消息 → 新对话自动保存
+```
+
+---
+
+### 6. 知识库管理
 
 **页面**: `src/pages/KnowledgeManagement.tsx`
 
@@ -214,36 +337,22 @@ CSV 文件 → 解析数据 → 类别映射 → Embedding 生成 → 数据库�
 - 搜索和过滤
 - 编辑 JSON 内容
 - 删除知识单元
-- 重新生成 Embedding
+- 重新生成 Embedding（调用 reindex-knowledge API）
 
 **组件结构**:
 
 ```
 KnowledgeManagement
-├── KnowledgeTable (列表展示)
-│   ├── KnowledgeEditDialog (编辑)
-│   └── KnowledgeDeleteDialog (删除)
-└── Search Input (搜索框)
+├── Reindex Button (重新索引所有向量)
+├── Search Input (搜索框)
+└── KnowledgeTable (列表展示)
+    ├── KnowledgeEditDialog (编辑)
+    └── KnowledgeDeleteDialog (删除)
 ```
-
-**核心操作**:
-
-1. **编辑知识** (`KnowledgeEditDialog.tsx`)
-   - JSON 编辑器
-   - 实时预览
-   - 自动重新生成 Embedding
-
-2. **删除知识** (`KnowledgeDeleteDialog.tsx`)
-   - 确认对话框
-   - 级联删除相关数据
-
-3. **搜索过滤** (`KnowledgeTable.tsx`)
-   - 全文搜索 (content, entities, category)
-   - 实时过滤结果
 
 ---
 
-### 4. 聊天界面
+### 7. 聊天界面
 
 **核心 Hook**: `src/hooks/useHeartBridgeChat.tsx`
 
@@ -267,6 +376,7 @@ sendMessage()
   → 调用 heartbridge-chat API
   → 接收 AI 回复
   → 添加助手消息到状态
+  → 保存到 chat_history
   → 显示检索来源和统计信息
 ```
 
@@ -275,14 +385,10 @@ sendMessage()
 - 欢迎消息本地化
 - 错误提示本地化
 
-**组件**: `src/components/chat/ChatInterface.tsx`
-
-UI 功能:
-- 消息列表滚动
-- 输入框自适应高度
-- 加载状态显示
-- 清空对话
-- 响应式布局
+**Markdown 渲染** (`MessageItem.tsx`):
+- 使用 `react-markdown` 渲染 AI 回复
+- 支持 GitHub Flavored Markdown (GFM)
+- 自动样式化：加粗、斜体、列表、代码块等
 
 ---
 
@@ -297,7 +403,7 @@ UI 功能:
 | id | UUID | 主键 |
 | content | TEXT | 内容（Question + Answer 或纯文本） |
 | entities | JSONB | 结构化数据 (question, answer, category, id) |
-| embedding | VECTOR(1536) | 向量表示 |
+| embedding | VECTOR(1536) | OpenAI 向量表示 |
 | category | TEXT | 类别 (communication, behavior, etc.) |
 | source_name | TEXT | 来源文件名 |
 | data_type | TEXT | 数据类型 (qa, text) |
@@ -310,23 +416,50 @@ UI 功能:
 - HNSW 向量索引 (用于相似度搜索)
 - category, source_name, data_type 上的 B-tree 索引
 
+**RLS 策略**:
+- 所有人可读（SELECT）
+- 仅管理员可写（INSERT, UPDATE, DELETE）
+
 #### 2. `chat_history` - 聊天历史表
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | UUID | 主键 |
 | session_id | TEXT | 会话 ID |
-| user_id | UUID | 用户 ID (可为空) |
+| user_id | UUID | 用户 ID |
 | message | TEXT | 用户消息 |
 | response | TEXT | AI 回复 |
 | sources | JSONB | 检索来源 |
 | created_at | TIMESTAMPTZ | 时间戳 |
 
 **RLS 策略**:
-- 用户只能查看自己的聊天记录
-- 用户只能插入自己的聊天记录
+- 用户只能查看自己的聊天记录（SELECT）
+- 用户只能插入自己的聊天记录（INSERT）
 
-#### 3. `profiles` - 用户配置表
+#### 3. `bcba_consultants` - BCBA 咨询师表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | UUID | 主键 |
+| name | TEXT | 姓名 |
+| title | TEXT | 职称 |
+| bio | TEXT | 个人简介 |
+| specialties | TEXT[] | 专长领域 |
+| contact_email | TEXT | 联系邮箱 |
+| contact_phone | TEXT | 联系电话 |
+| pricing | TEXT | 收费标准 |
+| experience_years | INTEGER | 从业年限 |
+| avatar_url | TEXT | 头像 URL |
+| is_active | BOOLEAN | 是否激活 |
+| display_order | INTEGER | 显示顺序 |
+| created_at | TIMESTAMPTZ | 创建时间 |
+| updated_at | TIMESTAMPTZ | 更新时间 |
+
+**RLS 策略**:
+- 所有人可查看激活的咨询师（SELECT WHERE is_active = true）
+- 仅管理员可管理（INSERT, UPDATE, DELETE）
+
+#### 4. `profiles` - 用户配置表
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -338,13 +471,20 @@ UI 功能:
 | created_at | TIMESTAMPTZ | 创建时间 |
 | updated_at | TIMESTAMPTZ | 更新时间 |
 
-#### 4. `user_roles` - 用户角色表
+**RLS 策略**:
+- 用户只能读写自己的资料
+
+#### 5. `user_roles` - 用户角色表
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | UUID | 主键 |
 | user_id | UUID | 用户 ID |
-| role | app_role | 角色枚举 (admin, parent) |
+| role | app_role | 角色枚举 (admin, therapist, parent) |
+
+**RLS 策略**:
+- 用户可查看自己的角色
+- 管理员可管理所有角色
 
 ### 数据库函数
 
@@ -365,6 +505,17 @@ CREATE FUNCTION search_knowledge_units(
 - 可选的类别和重要性过滤
 - 返回相似度分数
 - 排序和限制结果数量
+
+#### `has_role()` - 角色检查函数
+
+```sql
+CREATE FUNCTION has_role(_user_id UUID, _role app_role)
+RETURNS BOOLEAN
+```
+
+**功能**:
+- 检查用户是否具有特定角色
+- 用于 RLS 策略和权限控制
 
 ---
 
@@ -390,7 +541,7 @@ CREATE FUNCTION search_knowledge_units(
    npm run dev
    ```
 
-4. **本地 Supabase**:
+4. **本地 Supabase** (可选):
    ```bash
    npx supabase start
    npx supabase functions serve
@@ -406,6 +557,16 @@ CREATE FUNCTION search_knowledge_units(
 - Edge Functions 自动部署到 Supabase
 - 数据库迁移自动应用
 
+### 必需的环境变量（Supabase Secrets）
+
+在 Supabase 项目中配置以下 Secrets：
+
+- `LOVABLE_API_KEY`: Lovable AI Gateway 密钥（自动配置）
+- `OPENAI_API_KEY`: OpenAI API 密钥（用于 Embeddings 生成）
+- `SUPABASE_URL`: Supabase 项目 URL（自动配置）
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase 服务角色密钥（自动配置）
+- `SUPABASE_ANON_KEY`: Supabase 匿名密钥（自动配置）
+
 ---
 
 ## 🔐 安全和权限
@@ -419,14 +580,34 @@ CREATE FUNCTION search_knowledge_units(
 2. **chat_history 表**:
    - 用户只能读写自己的记录
 
-3. **profiles 表**:
+3. **bcba_consultants 表**:
+   - 所有人可查看激活的咨询师
+   - 仅 admin 可管理所有咨询师
+
+4. **profiles 表**:
    - 用户只能读写自己的资料
 
-### API 密钥管理
+5. **user_roles 表**:
+   - 用户可查看自己的角色
+   - 管理员可管理所有角色
 
-- `LOVABLE_API_KEY`: Lovable AI Gateway 密钥（自动配置）
-- 密钥存储在 Supabase Secrets 中
-- Edge Functions 通过环境变量访问
+### 认证流程
+
+1. **注册**:
+   - 邮箱密码注册
+   - 自动创建 profile 记录
+   - 默认分配 `parent` 角色
+   - 触发器：`handle_new_user()`
+
+2. **登录**:
+   - Supabase Auth 验证
+   - JWT Token 管理
+   - 会话持久化（localStorage）
+
+3. **权限检查**:
+   - 基于 `user_roles` 表
+   - RLS 策略自动执行
+   - 前端路由保护（ProtectedRoute、AdminRoute）
 
 ---
 
@@ -441,7 +622,7 @@ CSV 文件
   ↓
 heartbridge-upload-knowledge API
   ↓ 
-类别映射 + Embedding 生成
+类别映射 + OpenAI Embedding 生成
   ↓
 插入 knowledge_units 表
   ↓
@@ -459,15 +640,15 @@ useHeartBridgeChat Hook
   ↓
 heartbridge-chat API
   ↓
-生成 Query Embedding
+生成 Query Embedding (OpenAI)
   ↓
 search_knowledge_units() 数据库函数
   ↓
-检索相关知识 (向量相似度)
+检索相关知识 (向量相似度 > 0.5)
   ↓
 构建上下文 Context
   ↓
-调用 Lovable AI Gateway
+调用 Lovable AI Gateway (Gemini 2.5 Flash)
   ↓
 生成专业回答
   ↓
@@ -475,7 +656,23 @@ search_knowledge_units() 数据库函数
   ↓
 返回回答 + 来源 + 统计
   ↓
-显示在聊天界面
+显示在聊天界面（Markdown 渲染）
+```
+
+### 聊天历史加载流程
+
+```
+用户登录
+  ↓
+useHeartBridgeChat Hook 初始化
+  ↓
+查询 chat_history 表（最近 50 条）
+  ↓
+按时间排序恢复消息
+  ↓
+显示历史对话
+  ↓
+新对话自动追加到历史
 ```
 
 ---
@@ -490,7 +687,7 @@ search_knowledge_units() 数据库函数
 
 ### 调整 AI 回答风格
 
-编辑 `heartbridge-chat/index.ts` 的 `systemPrompt` (行 91-114):
+编辑 `heartbridge-chat/index.ts` 的 `systemPrompt` (行 112-135):
 
 ```typescript
 const systemPrompt = `You are HeartBridge AI...
@@ -502,15 +699,37 @@ const systemPrompt = `You are HeartBridge AI...
 
 ### 修改向量搜索参数
 
-在 `heartbridge-chat/index.ts` (行 62-68):
+在 `heartbridge-chat/index.ts` (行 75-81):
 
 ```typescript
 const { data: searchResults } = await supabaseClient.rpc('search_knowledge_units', {
   query_embedding: queryEmbedding,
-  match_threshold: 0.7,  // 相似度阈值 (0-1)
+  match_threshold: 0.5,  // 相似度阈值 (0-1)
   match_count: 8,        // 返回数量
   ...
 });
+```
+
+### 添加新的 BCBA 咨询师
+
+**方式一：通过管理界面**（推荐）
+1. 以管理员身份登录
+2. 访问 `/bcba-management` 页面
+3. 点击"添加咨询师"按钮
+4. 填写表单并保存
+
+**方式二：通过数据库**
+```sql
+INSERT INTO bcba_consultants (
+  name, title, bio, specialties, 
+  contact_email, contact_phone, pricing, 
+  experience_years, is_active, display_order
+) VALUES (
+  'Dr. Smith', 'BCBA-D', '专业自闭症干预专家',
+  ARRAY['ABA', '社交技能训练'], 
+  'smith@example.com', '123-456-7890', '500元/小时',
+  10, true, 1
+);
 ```
 
 ### 扩展 UI 组件
@@ -541,20 +760,36 @@ npx shadcn-ui@latest add [component-name]
 **测试问题（知识库中应有答案）：**
 - "自闭症儿童在遇到困难时常见的行为反应是什么？"
 - "教孩子说帮我时，强化策略应该怎样安排？"
-- "当孩子在等待时哭或伸手抢东西怎么办？"
+- "当孩子情绪激动时，家长应如何应对？"
 
 **预期结果：**
 - ✅ AI 能检索到知识库中的相关内容
 - ✅ 回答准确且基于知识库数据
 - ✅ 回答包含具体的干预策略
+- ✅ 回答使用 Markdown 格式（加粗、列表等）
 
-#### 3. 数据库交互测试
+#### 3. 聊天历史测试
+- ✅ 用户登录后自动加载历史聊天
+- ✅ 新对话自动保存到数据库
+- ✅ 刷新页面后历史仍然可见
+- ✅ 不同用户之间历史隔离
+- ✅ 清空对话功能正常
+
+#### 4. BCBA 咨询师功能测试
+- ✅ 普通用户可以查看咨询师列表
+- ✅ 咨询师信息完整显示
+- ✅ 联系方式（邮箱/电话）可点击
+- ✅ 管理员可以添加/编辑/删除咨询师
+- ✅ 激活/停用状态正确控制显示
+
+#### 5. 数据库交互测试
 - ✅ 聊天记录正确保存到数据库
 - ✅ RLS 策略正确限制数据访问
 - ✅ 管理员可以访问知识库管理
+- ✅ 管理员可以访问咨询师管理
 - ✅ 普通用户无法访问管理功能
 
-#### 4. 多语言测试
+#### 6. 多语言测试
 - ✅ 中英文界面切换正常
 - ✅ 两种语言下所有功能正常
 - ✅ 语言偏好持久化保存
@@ -586,11 +821,15 @@ SELECT public.has_role('YOUR_USER_ID', 'admin');
 
 | 文件路径 | 用途 | 关键内容 |
 |----------|------|----------|
-| `supabase/functions/heartbridge-chat/index.ts` | RAG 聊天 API | Embedding 生成、向量搜索、AI 对话 |
+| `supabase/functions/heartbridge-chat/index.ts` | RAG 聊天 API | OpenAI Embedding、向量搜索、Gemini AI 对话 |
 | `supabase/functions/heartbridge-upload-knowledge/index.ts` | 知识上传 API | CSV 解析、类别映射、批量插入 |
-| `src/hooks/useHeartBridgeChat.tsx` | 聊天逻辑 Hook | 消息管理、API 调用、错误处理 |
-| `src/components/chat/ChatInterface.tsx` | 聊天 UI 组件 | 消息显示、输入处理、状态管理 |
-| `src/pages/KnowledgeManagement.tsx` | 知识管理页面 | CRUD 操作、搜索过滤 |
+| `supabase/functions/reindex-knowledge/index.ts` | 重新索引 API | 批量重新生成 Embeddings |
+| `src/hooks/useHeartBridgeChat.tsx` | 聊天逻辑 Hook | 消息管理、历史加载、API 调用 |
+| `src/components/chat/ChatInterface.tsx` | 聊天 UI 组件 | 消息显示、输入处理 |
+| `src/components/chat/MessageItem.tsx` | 消息项组件 | Markdown 渲染、来源显示 |
+| `src/pages/BCBAConsultants.tsx` | 咨询师展示页 | 公开展示 BCBA 信息 |
+| `src/pages/BCBAManagement.tsx` | 咨询师管理页 | 管理员 CRUD 操作 |
+| `src/pages/KnowledgeManagement.tsx` | 知识管理页面 | CRUD 操作、搜索过滤、重新索引 |
 | `src/contexts/LanguageContext.tsx` | 多语言上下文 | 中英文切换、翻译字典 |
 | `supabase/config.toml` | Supabase 配置 | Edge Functions 配置、认证设置 |
 | `tailwind.config.ts` | Tailwind 配置 | 设计系统、主题定制 |
@@ -602,7 +841,7 @@ SELECT public.has_role('YOUR_USER_ID', 'admin');
 ### 查看 Edge Function 日志
 
 在 Lovable Cloud 后台:
-1. 打开后端管理界面
+1. 点击 <lov-open-backend>View Backend</lov-open-backend>
 2. 选择对应的 Edge Function
 3. 查看实时日志
 
@@ -626,6 +865,49 @@ const { data, error } = await supabase
 
 ---
 
+## 🎨 设计系统
+
+项目使用 Tailwind CSS 和 shadcn/ui 构建设计系统：
+
+- **颜色方案**: 定义在 `src/index.css` 中的 CSS 变量
+- **组件库**: shadcn/ui 基础组件 (`src/components/ui/`)
+- **响应式**: 移动优先设计，支持所有设备
+- **暗色模式**: 完整支持（通过 `next-themes`）
+
+---
+
+## 📋 路由结构
+
+| 路径 | 页面 | 权限要求 | 说明 |
+|------|------|----------|------|
+| `/` | HeartBridgeHome | 登录用户 | 主页和聊天界面 |
+| `/auth` | Auth | 公开 | 登录注册页面 |
+| `/consultants` | BCBAConsultants | 登录用户 | BCBA 咨询师展示 |
+| `/bcba-management` | BCBAManagement | 管理员 | BCBA 咨询师管理 |
+| `/knowledge` | KnowledgeManagement | 管理员 | 知识库管理 |
+| `/settings` | Settings | 登录用户 | 用户设置 |
+| `/profile` | Profile | 登录用户 | 用户资料 |
+
+---
+
+## 🔄 版本历史
+
+### v2.0.0 (2025-11-01)
+- ✨ 新增 BCBA 咨询师展示和管理功能
+- ✨ 新增聊天历史记忆功能
+- ✨ 新增 Markdown 渲染支持
+- 🔧 修复聊天历史加载逻辑
+- 🗑️ 移除冗余文件（Index.tsx, ChatInput.tsx）
+
+### v1.0.0 (2025-10-28)
+- 🎉 初始版本发布
+- ✅ RAG 聊天系统
+- ✅ 知识库管理
+- ✅ 用户认证系统
+- ✅ 多语言支持
+
+---
+
 ## 📄 许可证
 
 MIT License
@@ -638,9 +920,10 @@ MIT License
 
 开发前请:
 1. Fork 本仓库
-2. 创建特性分支
-3. 提交代码并测试
-4. 发起 Pull Request
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交代码并测试 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 发起 Pull Request
 
 ---
 
@@ -650,6 +933,16 @@ MIT License
 
 ---
 
-**最后更新**: 2025-10-28
-**版本**: 1.0.0
+## 🙏 致谢
+
+- OpenAI - Embeddings API
+- Google Gemini - AI 对话模型
+- Supabase - 后端基础设施
+- Lovable - 开发平台和 AI Gateway
+- shadcn/ui - UI 组件库
+
+---
+
+**最后更新**: 2025-11-01  
+**版本**: 2.0.0  
 **状态**: ✅ 生产就绪

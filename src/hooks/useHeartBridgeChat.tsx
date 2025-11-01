@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -44,60 +44,63 @@ export function useHeartBridgeChat(language: 'en' | 'zh' = 'en') {
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
   // Load chat history on mount
-  useCallback(async () => {
-    if (historyLoaded) return;
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setMessages([{
-          role: 'assistant',
-          content: t.welcome
-        }]);
-        setHistoryLoaded(true);
-        return;
-      }
-
-      const { data: history, error } = await supabase
-        .from('chat_history')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true })
-        .limit(50);
-
-      if (error) throw error;
-
-      if (history && history.length > 0) {
-        const loadedMessages: ChatMessage[] = [];
-        history.forEach(record => {
-          loadedMessages.push({
-            role: 'user',
-            content: record.message
-          });
-          loadedMessages.push({
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (historyLoaded) return;
+      
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setMessages([{
             role: 'assistant',
-            content: record.response,
-            sources: Array.isArray(record.sources) ? record.sources as any[] : []
+            content: t.welcome
+          }]);
+          setHistoryLoaded(true);
+          return;
+        }
+
+        const { data: history, error } = await supabase
+          .from('chat_history')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(50);
+
+        if (error) throw error;
+
+        if (history && history.length > 0) {
+          const loadedMessages: ChatMessage[] = [];
+          history.forEach(record => {
+            loadedMessages.push({
+              role: 'user',
+              content: record.message
+            });
+            loadedMessages.push({
+              role: 'assistant',
+              content: record.response,
+              sources: Array.isArray(record.sources) ? record.sources as any[] : []
+            });
           });
-        });
-        setMessages(loadedMessages);
-      } else {
+          setMessages(loadedMessages);
+        } else {
+          setMessages([{
+            role: 'assistant',
+            content: t.welcome
+          }]);
+        }
+      } catch (error) {
+        console.error('Error loading chat history:', error);
         setMessages([{
           role: 'assistant',
           content: t.welcome
         }]);
+      } finally {
+        setHistoryLoaded(true);
       }
-    } catch (error) {
-      console.error('Error loading chat history:', error);
-      setMessages([{
-        role: 'assistant',
-        content: t.welcome
-      }]);
-    } finally {
-      setHistoryLoaded(true);
-    }
-  }, [historyLoaded, t.welcome])();
+    };
 
+    loadHistory();
+  }, [historyLoaded, t.welcome]);
 
   const sendMessage = useCallback(async (
     message: string,
