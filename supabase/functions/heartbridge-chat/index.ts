@@ -39,6 +39,8 @@ serve(async (req) => {
     }
 
     // 1. Generate query embedding using OpenAI
+    console.log('Generating embedding for query:', sanitizedMessage.substring(0, 50) + '...');
+    
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -48,21 +50,23 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'text-embedding-3-small',
         input: sanitizedMessage,
+        encoding_format: 'float',
       }),
     });
 
     if (!embeddingResponse.ok) {
       const errorText = await embeddingResponse.text();
       console.error('OpenAI Embedding API error:', embeddingResponse.status, errorText);
-      throw new Error('Failed to generate embedding');
+      throw new Error(`Failed to generate embedding: ${embeddingResponse.status}`);
     }
 
     const embeddingData = await embeddingResponse.json();
     const queryEmbedding = embeddingData.data[0].embedding;
+    console.log('Generated embedding, dimensions:', queryEmbedding.length);
 
     // 2. Vector search knowledge base
     console.log('Performing vector search with params:', {
-      match_threshold: 0.3,
+      match_threshold: 0.5,
       match_count: 8,
       filter_category: category === 'all' ? null : category,
       filter_importance: importance === 'all' ? null : importance,
@@ -70,7 +74,7 @@ serve(async (req) => {
 
     const { data: searchResults, error: searchError } = await supabaseClient.rpc('search_knowledge_units', {
       query_embedding: queryEmbedding,
-      match_threshold: 0.3,
+      match_threshold: 0.5,
       match_count: 8,
       filter_category: category === 'all' ? null : category,
       filter_importance: importance === 'all' ? null : importance,
@@ -79,11 +83,13 @@ serve(async (req) => {
     console.log('Vector search results:', {
       resultsCount: searchResults?.length || 0,
       error: searchError,
-      firstResult: searchResults?.[0]
+      firstResult: searchResults?.[0],
+      firstSimilarity: searchResults?.[0]?.similarity
     });
 
     if (searchError) {
       console.error('Vector search error:', searchError);
+      throw new Error(`Vector search failed: ${searchError.message}`);
     }
 
     // 3. Build context from search results

@@ -11,11 +11,13 @@ import { UserMenu } from "@/components/UserMenu";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw, ArrowLeft, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useReindexKnowledge } from "@/hooks/useReindexKnowledge";
 
 export default function KnowledgeManagement() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language } = useLanguage();
+  const { reindexKnowledge, isReindexing } = useReindexKnowledge();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [importanceFilter, setImportanceFilter] = useState<string>("all");
@@ -93,6 +95,14 @@ export default function KnowledgeManagement() {
           <CardContent className="space-y-4">
             <div className="flex gap-4">
               <Input placeholder={t.search} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1" />
+              <Button 
+                onClick={reindexKnowledge} 
+                disabled={isReindexing}
+                variant="outline"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isReindexing ? 'animate-spin' : ''}`} />
+                重新索引
+              </Button>
               <Button onClick={() => refetch()} variant="outline" size="icon">
                 <RefreshCw className="h-4 w-4" />
               </Button>
