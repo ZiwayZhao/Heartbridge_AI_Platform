@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      bcba_consultants: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          display_order: number | null
+          experience_years: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          pricing: string | null
+          specialties: string[] | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          display_order?: number | null
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          pricing?: string | null
+          specialties?: string[] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          display_order?: number | null
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          pricing?: string | null
+          specialties?: string[] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           created_at: string
