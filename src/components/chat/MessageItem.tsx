@@ -1,4 +1,5 @@
-
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Database } from 'lucide-react';
@@ -17,8 +18,14 @@ export default function MessageItem({ message, index }: MessageItemProps) {
       <div className={`max-w-[90%] sm:max-w-[85%] ${isUser ? 'order-2' : 'order-1'}`}>
         <Card className={`${isUser ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}`}>
           <CardContent className="p-3 sm:p-4">
-            <div className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed">
-              {message.content}
+            <div className="prose prose-sm max-w-none text-xs sm:text-sm leading-relaxed prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-strong:text-orange-600 prose-em:text-blue-600">
+              {isUser ? (
+                message.content
+              ) : (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {message.content}
+                </ReactMarkdown>
+              )}
             </div>
             
             {message.sources && message.sources.length > 0 && (
