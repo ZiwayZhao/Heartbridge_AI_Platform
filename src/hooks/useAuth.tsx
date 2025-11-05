@@ -145,10 +145,56 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = async (email: string, password: string, fullName?: string, inviteCode?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    // 如果提供了邀请码，验证邀请码
+    let assignedRole: 'admin' | 'parent' | 'therapist' | null = null;
+    let codeData: any = null;
+    
+    if (inviteCode) {
+      const { data, error: codeError } = await supabase
+        .from('invite_codes')
+        .select('*')
+        .eq('code', inviteCode)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (codeError || !data) {
+        toast({
+          title: '错误',
+          description: '邀请码无效或已过期',
+          variant: 'destructive',
+        });
+        return { error: new Error('Invalid invite code') };
+      }
+
+      codeData = data;
+
+      // 检查使用次数限制
+      if (codeData.max_uses && codeData.used_count >= codeData.max_uses) {
+        toast({
+          title: '错误',
+          description: '邀请码已达到使用次数上限',
+          variant: 'destructive',
+        });
+        return { error: new Error('Invite code limit reached') };
+      }
+
+      // 检查过期时间
+      if (codeData.expires_at && new Date(codeData.expires_at) < new Date()) {
+        toast({
+          title: '错误',
+          description: '邀请码已过期',
+          variant: 'destructive',
+        });
+        return { error: new Error('Invite code expired') };
+      }
+
+      assignedRole = codeData.role as 'admin' | 'parent' | 'therapist';
+    }
+    
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -165,14 +211,56 @@ export function useAuth() {
         description: error.message,
         variant: "destructive"
       });
-    } else {
+      return { error };
+    }
+
+    if (data.user) {
+      // Create profile entry
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          user_id: data.user.id,
+          full_name: fullName || email.split('@')[0],
+          email: data.user.email,
+        }]);
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+      }
+
+      // 如果有分配的角色，添加用户角色
+      if (assignedRole && inviteCode && codeData) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert([{
+            user_id: data.user.id,
+            role: assignedRole,
+          }]);
+
+        if (roleError) {
+          console.error('Error assigning role:', roleError);
+        }
+
+        // 更新邀请码使用次数
+        const { error: updateError } = await supabase
+          .from('invite_codes')
+          .update({ used_count: codeData.used_count + 1 })
+          .eq('code', inviteCode);
+
+        if (updateError) {
+          console.error('Error updating invite code:', updateError);
+        }
+      }
+
       toast({
-        title: "Registration Successful",
-        description: "Please check your email to confirm your account",
+        title: "Success",
+        description: assignedRole === 'admin' 
+          ? '管理员账户创建成功！' 
+          : 'Account created successfully! Please check your email for verification.',
       });
     }
 
-    return { error };
+    return { error: null };
   };
 
   const signIn = async (email: string, password: string) => {

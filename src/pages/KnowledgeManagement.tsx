@@ -10,7 +10,7 @@ import { KnowledgeTable } from "@/components/knowledge/KnowledgeTable";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw } from "lucide-react";
 import { useReindexKnowledge } from "@/hooks/useReindexKnowledge";
-import { Layout } from "@/components/Layout";
+import Layout from "@/components/Layout";
 
 export default function KnowledgeManagement() {
   const { toast } = useToast();

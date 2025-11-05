@@ -131,6 +131,39 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          role: Database["public"]["Enums"]["app_role"]
+          used_count: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          role?: Database["public"]["Enums"]["app_role"]
+          used_count?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          role?: Database["public"]["Enums"]["app_role"]
+          used_count?: number | null
+        }
+        Relationships: []
+      }
       knowledge_units: {
         Row: {
           category: string | null

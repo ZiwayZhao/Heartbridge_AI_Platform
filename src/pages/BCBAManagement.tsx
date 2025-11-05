@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { Layout } from '@/components/Layout';
+import Layout from '@/components/Layout';
 import {
   Dialog,
   DialogContent,

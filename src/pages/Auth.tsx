@@ -27,6 +27,7 @@ export default function Auth() {
     password: '',
     confirmPassword: '',
     fullName: '',
+    inviteCode: '',
   });
 
   const texts = {
@@ -39,6 +40,8 @@ export default function Auth() {
       password: 'Password',
       confirmPassword: 'Confirm Password',
       fullName: 'Full Name',
+      inviteCode: 'Invite Code (Optional)',
+      inviteCodeHelper: 'Enter invite code for special permissions',
       signInButton: 'Sign In',
       signUpButton: 'Create Account',
       signInTab: 'Sign In',
@@ -59,6 +62,8 @@ export default function Auth() {
       password: '密码',
       confirmPassword: '确认密码',
       fullName: '姓名',
+      inviteCode: '邀请码（可选）',
+      inviteCodeHelper: '如有邀请码可输入以获得特殊权限',
       signInButton: '登录',
       signUpButton: '创建账户',
       signInTab: '登录',
@@ -129,7 +134,12 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      await signUp(signUpData.email, signUpData.password, signUpData.fullName);
+      await signUp(
+        signUpData.email, 
+        signUpData.password, 
+        signUpData.fullName,
+        signUpData.inviteCode || undefined
+      );
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Sign up failed');
@@ -251,6 +261,19 @@ export default function Auth() {
                     disabled={isLoading}
                     required
                   />
+                </div>
+                
+                <div className="space-y-1">
+                  <Label htmlFor="signup-invite">{t.inviteCode}</Label>
+                  <Input
+                    id="signup-invite"
+                    type="text"
+                    placeholder="Upen666"
+                    value={signUpData.inviteCode}
+                    onChange={(e) => setSignUpData({ ...signUpData, inviteCode: e.target.value })}
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-muted-foreground">{t.inviteCodeHelper}</p>
                 </div>
                 
                 <Button type="submit" className="w-full" disabled={isLoading}>

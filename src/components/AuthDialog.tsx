@@ -159,7 +159,7 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               />
             </div>
             <div className="flex flex-col gap-3">
-              <Button type="submit" disabled={isLoading} className="w-full bg-orange-600 hover:bg-orange-700">
+              <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? '登录中...' : '管理员登录'}
               </Button>
               <Button
@@ -200,7 +200,7 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     required
                   />
                 </div>
-                <Button type="submit" disabled={isLoading} className="w-full bg-orange-600 hover:bg-orange-700">
+                <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? '登录中...' : '登录'}
                 </Button>
               </form>
@@ -236,7 +236,7 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     required
                   />
                 </div>
-                <Button type="submit" disabled={isLoading} className="w-full bg-orange-600 hover:bg-orange-700">
+                <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? '注册中...' : '注册'}
                 </Button>
               </form>
@@ -247,7 +247,7 @@ export default function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                 type="button"
                 variant="outline"
                 onClick={() => setShowAdminLogin(true)}
-                className="w-full text-orange-600 border-orange-200 hover:bg-orange-50"
+                className="w-full"
               >
                 管理员登录
               </Button>

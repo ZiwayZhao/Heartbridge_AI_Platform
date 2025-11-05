@@ -5,14 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { UserMenu } from '@/components/UserMenu';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, User as UserIcon, Save } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import Layout from '@/components/Layout';
 
 export default function Profile() {
-  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -77,23 +75,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="border-b bg-card/50 backdrop-blur">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <UserIcon className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-semibold">{t.title}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => navigate('/')} variant="outline" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t.back}
-            </Button>
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-
+    <Layout>
       <div className="container mx-auto p-6 max-w-2xl">
         <Card>
           <CardHeader>
@@ -139,6 +121,6 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 }

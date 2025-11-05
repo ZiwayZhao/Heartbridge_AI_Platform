@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Mail, Phone, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Layout } from '@/components/Layout';
+import Layout from '@/components/Layout';
 
 interface BCBAConsultant {
   id: string;

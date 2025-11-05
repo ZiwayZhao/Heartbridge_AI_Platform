@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Brain, Users } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import HeartBridgeChat from '@/components/HeartBridgeChat';
-import { Layout } from '@/components/Layout';
+import Layout from '@/components/Layout';
 
 export default function HeartBridgeHome() {
   const { t } = useLanguage();
