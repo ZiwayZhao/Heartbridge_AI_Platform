@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Layout } from '@/components/Layout';
 import {
   Dialog,
   DialogContent,
@@ -189,195 +190,197 @@ export default function BCBAManagement() {
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">BCBA 咨询师管理</h1>
-          <p className="text-muted-foreground">管理平台上的专业咨询师信息</p>
-        </div>
-        <Button onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          添加咨询师
-        </Button>
-      </div>
-
-      {loading ? (
-        <div className="animate-pulse space-y-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-32 bg-muted rounded-lg"></div>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {consultants.map(consultant => (
-            <Card key={consultant.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{consultant.name}</CardTitle>
-                    <CardDescription>{consultant.title}</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(consultant)}>
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedConsultant(consultant);
-                        setDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">联系邮箱：</span>
-                    <p>{consultant.contact_email || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">联系电话：</span>
-                    <p>{consultant.contact_phone || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">从业年限：</span>
-                    <p>{consultant.experience_years ? `${consultant.experience_years}年` : '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">状态：</span>
-                    <p>{consultant.is_active ? '激活' : '未激活'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedConsultant ? '编辑咨询师' : '添加咨询师'}</DialogTitle>
-            <DialogDescription>填写咨询师的详细信息</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">姓名 *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="title">职称</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={e => setFormData({ ...formData, title: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="bio">个人简介</Label>
-              <Textarea
-                id="bio"
-                value={formData.bio}
-                onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="specialties">专长领域（用逗号分隔）</Label>
-              <Input
-                id="specialties"
-                value={formData.specialties}
-                onChange={e => setFormData({ ...formData, specialties: e.target.value })}
-                placeholder="例如：ABA行为分析, 语言发展, 社交技能"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="email">联系邮箱</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.contact_email}
-                  onChange={e => setFormData({ ...formData, contact_email: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">联系电话</Label>
-                <Input
-                  id="phone"
-                  value={formData.contact_phone}
-                  onChange={e => setFormData({ ...formData, contact_phone: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="pricing">收费标准</Label>
-                <Input
-                  id="pricing"
-                  value={formData.pricing}
-                  onChange={e => setFormData({ ...formData, pricing: e.target.value })}
-                  placeholder="例如：500元/小时"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="experience">从业年限</Label>
-                <Input
-                  id="experience"
-                  type="number"
-                  value={formData.experience_years}
-                  onChange={e => setFormData({ ...formData, experience_years: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="display_order">显示顺序</Label>
-              <Input
-                id="display_order"
-                type="number"
-                value={formData.display_order}
-                onChange={e => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="active"
-                checked={formData.is_active}
-                onCheckedChange={checked => setFormData({ ...formData, is_active: checked })}
-              />
-              <Label htmlFor="active">激活状态</Label>
-            </div>
+    <Layout>
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">BCBA 咨询师管理</h1>
+            <p className="text-muted-foreground">管理平台上的专业咨询师信息</p>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-            <Button onClick={handleSave} disabled={!formData.name}>保存</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <Button onClick={handleCreate}>
+            <Plus className="w-4 h-4 mr-2" />
+            添加咨询师
+          </Button>
+        </div>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
-            <AlertDialogDescription>
-              确定要删除咨询师 "{selectedConsultant?.name}" 吗？此操作无法撤销。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>删除</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        {loading ? (
+          <div className="animate-pulse space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-32 bg-muted rounded-lg"></div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {consultants.map(consultant => (
+              <Card key={consultant.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{consultant.name}</CardTitle>
+                      <CardDescription>{consultant.title}</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(consultant)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedConsultant(consultant);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">联系邮箱：</span>
+                      <p>{consultant.contact_email || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">联系电话：</span>
+                      <p>{consultant.contact_phone || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">从业年限：</span>
+                      <p>{consultant.experience_years ? `${consultant.experience_years}年` : '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">状态：</span>
+                      <p>{consultant.is_active ? '激活' : '未激活'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedConsultant ? '编辑咨询师' : '添加咨询师'}</DialogTitle>
+              <DialogDescription>填写咨询师的详细信息</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">姓名 *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="title">职称</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={e => setFormData({ ...formData, title: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="bio">个人简介</Label>
+                <Textarea
+                  id="bio"
+                  value={formData.bio}
+                  onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                  rows={4}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="specialties">专长领域（用逗号分隔）</Label>
+                <Input
+                  id="specialties"
+                  value={formData.specialties}
+                  onChange={e => setFormData({ ...formData, specialties: e.target.value })}
+                  placeholder="例如：ABA行为分析, 语言发展, 社交技能"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">联系邮箱</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.contact_email}
+                    onChange={e => setFormData({ ...formData, contact_email: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">联系电话</Label>
+                  <Input
+                    id="phone"
+                    value={formData.contact_phone}
+                    onChange={e => setFormData({ ...formData, contact_phone: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="pricing">收费标准</Label>
+                  <Input
+                    id="pricing"
+                    value={formData.pricing}
+                    onChange={e => setFormData({ ...formData, pricing: e.target.value })}
+                    placeholder="例如：500元/小时"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="experience">从业年限</Label>
+                  <Input
+                    id="experience"
+                    type="number"
+                    value={formData.experience_years}
+                    onChange={e => setFormData({ ...formData, experience_years: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="display_order">显示顺序</Label>
+                <Input
+                  id="display_order"
+                  type="number"
+                  value={formData.display_order}
+                  onChange={e => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="active"
+                  checked={formData.is_active}
+                  onCheckedChange={checked => setFormData({ ...formData, is_active: checked })}
+                />
+                <Label htmlFor="active">激活状态</Label>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
+              <Button onClick={handleSave} disabled={!formData.name}>保存</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>确认删除</AlertDialogTitle>
+              <AlertDialogDescription>
+                确定要删除咨询师 "{selectedConsultant?.name}" 吗？此操作无法撤销。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>删除</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </Layout>
   );
 }

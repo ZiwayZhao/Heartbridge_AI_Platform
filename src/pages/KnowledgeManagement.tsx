@@ -7,14 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KnowledgeTable } from "@/components/knowledge/KnowledgeTable";
-import { UserMenu } from "@/components/UserMenu";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, ArrowLeft, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 import { useReindexKnowledge } from "@/hooks/useReindexKnowledge";
+import { Layout } from "@/components/Layout";
 
 export default function KnowledgeManagement() {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { language } = useLanguage();
   const { reindexKnowledge, isReindexing } = useReindexKnowledge();
@@ -69,25 +67,9 @@ export default function KnowledgeManagement() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="border-b bg-card/50 backdrop-blur">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-semibold">{t.title}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => navigate('/')} variant="outline" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t.back}
-            </Button>
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto p-6 space-y-6">
-        <Card>
+    <Layout>
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>{t.title}</CardTitle>
             <CardDescription>{t.description}</CardDescription>
@@ -119,6 +101,6 @@ export default function KnowledgeManagement() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 }
